@@ -81,15 +81,5 @@ public interface TIPP {
 	 */
 	Collection<TIPPSection> getSections();
 
-	/**
-	 * Return a list of all the objects in the specified section, ordered 
-	 * according to the sequence values of the objects.  If the section does not
-	 * exist in the package or contains no objects, an empty list is returned.
-	 * 
-	 * @param sectionType the type of the section to fetch objects for
-	 * @return list of package objects, or an empty list.
-	 */
-	// TODO: put this in the section?
-	List<TIPPResource> getSectionObjects(TIPPSectionType sectionType);
-
+	TIPPSection getSection(TIPPSectionType sectionType);
 }

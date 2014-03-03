@@ -31,7 +31,7 @@ public class TIPPSection {
         return tipp;
     }
     
-    public void setType(TIPPSectionType type) {
+    void setType(TIPPSectionType type) {
         this.type = type;
     }
     

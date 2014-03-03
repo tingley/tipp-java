@@ -65,7 +65,7 @@ public class TestTIPPackage {
         checkErrors(status, 0);
         verifyRequestPackage(tip);
         for (TIPPResource file : 
-        	 tip.getSectionObjects(TIPPSectionType.BILINGUAL)) {
+        	 tip.getSection(TIPPSectionType.BILINGUAL).getResources()) {
             // Just instantiating the input stream is the real test..
             InputStream is = file.getInputStream();
             assertNotNull(is);
@@ -332,8 +332,8 @@ public class TestTIPPackage {
         assertEquals(s1, s2);
         for (TIPPSection s : s1) {
             TIPPSectionType type = s.getType();
-        	List<TIPPResource> o1 = p1.getSectionObjects(type);
-        	List<TIPPResource> o2 = p2.getSectionObjects(type);
+        	Collection<TIPPResource> o1 = s.getResources();
+        	Collection<TIPPResource> o2 = p2.getSection(type).getResources();
         	assertNotNull(o1);
         	assertNotNull(o2);
         	assertEquals(o1, o2);
@@ -419,8 +419,8 @@ public class TestTIPPackage {
     }
     
     private static void expectObjectSection(TIPP tipp,
-            TIPPSectionType type, List<TIPPResource> files) {
-        List<TIPPResource> found = tipp.getSectionObjects(type);
+            TIPPSectionType type, Collection<TIPPResource> files) {
+        Collection<TIPPResource> found = tipp.getSection(type).getResources();
         assertNotNull(found);
         assertEquals(files, found);
     }

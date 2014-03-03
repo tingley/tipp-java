@@ -82,21 +82,8 @@ abstract class PackageBase implements TIPP {
 		getManifest().getTask().setTargetLocale(targetLocale);
 	}
 
-	// For now, this sorts every time
-	public List<TIPPResource> getSectionObjects(TIPPSectionType sectionType) {
-		TIPPSection section = 
-				getManifest().getSection(sectionType);
-		if (section == null) {
-			return Collections.emptyList();
-		}
-		List<TIPPResource> list = 
-				new ArrayList<TIPPResource>(section.getResources());
-		Collections.sort(list, new Comparator<TIPPResource>() {
-			public int compare(TIPPResource f1, TIPPResource f2) {
-				return f1.getSequence() - f2.getSequence();
-			}
-		});
-		return list;
+	public TIPPSection getSection(TIPPSectionType sectionType) {
+	    return getManifest().getSection(sectionType);
 	}
 	
 	public TIPPSection getBilingualSection() {
