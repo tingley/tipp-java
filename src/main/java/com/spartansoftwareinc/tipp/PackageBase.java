@@ -123,30 +123,6 @@ abstract class PackageBase implements TIPP {
 	public Collection<TIPPSection> getSections() {
 	    return getManifest().getSections();
 	}
-
-	@Deprecated
-	public TIPPResource addFile(TIPPSectionType sectionType, 
-			String objectName, InputStream objectData) throws IOException, TIPPException {
-		TIPPSection section = manifest.getSection(sectionType);
-		if (section == null) {
-			// Create the section.  Derive the section name from the uri.
-			section = manifest.addSection(sectionType);
-		}
-		TIPPFile resource = section.addFile(objectName);
-		section.addFile(resource);
-		// Copy the data
-		OutputStream os = resource.getOutputStream();
-		FileUtil.copyStreamToStream(objectData, os);
-		objectData.close();
-		os.close();
-		return resource;
-	}
-
-	public TIPPResource addFile(TIPPSectionType sectionType, 
-			String objectName, File objectData) throws IOException, TIPPException {
-		return addFile(sectionType, objectName, 
-				new BufferedInputStream(new FileInputStream(objectData)));
-	}
 	
     /**
      * Write this package to an output stream as a ZIP archive
