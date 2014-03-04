@@ -7,6 +7,15 @@ import javax.xml.crypto.KeySelector;
 
 public class TIPPFactory {
 
+    private PackageStoreFactory storeFactory = new InMemoryPackageStoreFactory();
+
+    public void setPackageStoreFactory(PackageStoreFactory strategy) {
+        if (strategy == null) {
+            throw new IllegalArgumentException("null strategy");
+        }
+        this.storeFactory = strategy;
+    }
+
     /**
      * Create a new TIPP object from a byte stream representation of 
      * a zipped TIPP.  The package data will be expanded into the provided
@@ -19,16 +28,16 @@ public class TIPPFactory {
      * actually was.
      * 
      * @param inputStream zipped package data
-     * @param store PackageStore to hold the expanded package data.
      * @param status a record of any errors encountered during loading
      * 
      * @return a TIPP if parsing was completed, or null if a FATAL error occurred.
      * @throws IOException 
      * @throws TIPPException if some other type of error occurred
      */
-    public static TIPP openFromStream(InputStream inputStream, 
-            PackageStore store, TIPPLoadStatus status) throws IOException {
-        return openFromStream(inputStream, store, status, null);
+    public TIPP openFromStream(InputStream inputStream, 
+                               TIPPLoadStatus status) throws IOException {
+        return openFromStream(inputStream, storeFactory.newPackageStore(),
+                              status, null);
     }
     
     /**
@@ -50,7 +59,14 @@ public class TIPPFactory {
      * @throws IOException 
      * @throws TIPPException if some other type of error occurred
      */
-    public static TIPP openFromStream(InputStream inputStream, 
+    public TIPP openFromStream(InputStream inputStream, 
+            TIPPLoadStatus status,
+            KeySelector keySelector) throws IOException {
+        PackageStore store = storeFactory.newPackageStore();
+        return openFromStream(inputStream, store, status, keySelector);
+    }
+
+    private TIPP openFromStream(InputStream inputStream,
             PackageStore store, TIPPLoadStatus status,
             KeySelector keySelector) throws IOException {
         try {
@@ -62,34 +78,6 @@ public class TIPPFactory {
             source.close();
 
             return new PackageReader(store).load(status, keySelector);
-        }
-        catch (ReportedException e) {
-            // Reported exceptions will be logged as part of the load status;
-            // we catch them (to terminate loading), but don't need to propagate them
-            // further.
-            return null;
-        }
-    }
-    
-    /**
-     * Create a TIPP object from a PackageStore that already contains package data.
-     * This method does not validate the package signature, even if it is present.
-     * <p>
-     * This method will return a non-null TIPP as long as the package could be 
-     * loaded without encounterning a fatal error.  However, the TIPPLoadStatus object
-     * passed as a parameter should be examined to see how successful the loading 
-     * actually was.
-     * 
-     * @param store package store from which to load the package
-     * @param status a record of any errors encountered during loading
-     * @return a TIPP if parsing was completed, or null if a FATAL error occurred.
-     * @throws TIPPException
-     * @throws IOException
-     */
-    public static TIPP openFromStore(PackageStore store, TIPPLoadStatus status) 
-            throws IOException {
-        try {
-            return new PackageReader(store).load(status, null);
         }
         catch (ReportedException e) {
             // Reported exceptions will be logged as part of the load status;

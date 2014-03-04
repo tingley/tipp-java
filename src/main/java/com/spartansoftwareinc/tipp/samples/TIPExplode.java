@@ -31,10 +31,9 @@ public class TIPExplode {
         }
         File tipFile = verifyPackageFile(args[0]);
         File targetDir = prepareTargetDirectory(args[1]);
-        PackageStore store = new FileSystemBackingStore(targetDir);
         InputStream is = new BufferedInputStream(new FileInputStream(tipFile));
         TIPPLoadStatus status = new TIPPLoadStatus();
-        TIPP tip = TIPPFactory.openFromStream(is, store, status);
+        TIPP tip = new TIPPFactory().openFromStream(is, status);
         is.close();
         List<TIPPError> errors = status.getAllErrors();
         if (errors.size() > 0) {

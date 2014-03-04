@@ -24,8 +24,7 @@ public class TestPackageStore {
         InputStream is =  
                 getClass().getResourceAsStream("data/test_package.zip");
         TIPPLoadStatus status = new TIPPLoadStatus();
-        PackageStore store = new InMemoryBackingStore();
-        TIPPFactory.openFromStream(is, store, status);
+        new TIPPFactory().openFromStream(is, status);
         assertEquals(TIPPErrorSeverity.NONE, status.getSeverity());
     }
     

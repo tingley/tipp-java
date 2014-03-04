@@ -407,7 +407,7 @@ public class TestTIPManifest {
     private TIPP getSamplePackage(String path, TIPPLoadStatus status) throws Exception {
         InputStream is = 
             getClass().getResourceAsStream(path);
-        return TIPPFactory.openFromStream(is, new InMemoryBackingStore(), status);
+        return new TIPPFactory().openFromStream(is, status);
     }
 
     /**

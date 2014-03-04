@@ -76,38 +76,22 @@ public class TestTIPPackage {
     
     @Test
     public void testOpenFromInMemoryStore() throws Exception {
-        testOpenFromStore(new InMemoryBackingStore());
+        testOpenToStore(new InMemoryPackageStoreFactory());
     }
     
     @Test
     public void testOpenFromTempFileBackingStore() throws Exception {
-        testOpenFromStore(new TempFileBackingStore());
+        testOpenToStore(new TempFilePackageStoreFactory());
     }
     
-    @Test
-    public void testOpenFromFileBackingStore() throws Exception {
-        // This is actually equivalent to the TempFileBackingStore 
-        // in the current implementation..
-        File temp = FileUtil.createTempDir("jtip-test");
-        assertNotNull(temp);
-        assertTrue(temp.exists());
-        assertTrue(temp.isDirectory());
-        testOpenFromStore(new FileSystemBackingStore(temp));
-        FileUtil.recursiveDelete(temp);
-    }
-    
-    private void testOpenFromStore(PackageStore store) throws Exception {
+    private void testOpenToStore(PackageStoreFactory strategy) throws Exception {
         TIPPLoadStatus status = new TIPPLoadStatus();
         InputStream is = getClass().getResourceAsStream("data/test_package.zip");
-        TIPP tipp = TIPPFactory.openFromStream(is, store, status);
+        TIPPFactory factory = new TIPPFactory();
+        factory.setPackageStoreFactory(strategy);;
+        TIPP tipp = factory.openFromStream(is, status);
         checkErrors(status, 0);
         verifyRequestPackage(tipp);
-        // now open it again from the store that was populated with the first call
-        status = new TIPPLoadStatus();
-        TIPP tipp2 = TIPPFactory.openFromStore(store, status);
-        checkErrors(status, 0);
-        verifyRequestPackage(tipp2);
-        store.close();
     }
     
     @Test
@@ -192,9 +176,8 @@ public class TestTIPPackage {
         tip.saveToStream(os);
         os.close();
         status = new TIPPLoadStatus();
-        TIPP roundtrip  = TIPPFactory.openFromStream(
-                new BufferedInputStream(new FileInputStream(temp)),
-                new InMemoryBackingStore(), status);
+        TIPP roundtrip  = new TIPPFactory().openFromStream(
+                new BufferedInputStream(new FileInputStream(temp)), status);
         assertEquals(0, status.getAllErrors().size());
         verifyRequestPackage(roundtrip);
         comparePackageParts(tip, roundtrip);
@@ -215,9 +198,8 @@ public class TestTIPPackage {
         tip.saveToStream(os);
         os.close();
         status = new TIPPLoadStatus();
-        TIPP roundtrip  = TIPPFactory.openFromStream(
-                new BufferedInputStream(new FileInputStream(temp)), 
-                new InMemoryBackingStore(), status);
+        TIPP roundtrip = new TIPPFactory().openFromStream(
+                new BufferedInputStream(new FileInputStream(temp)), status);
         assertEquals(0, status.getAllErrors().size());
         assertFalse(roundtrip.isRequest());
         verifyResponsePackage((ResponseTIPP)roundtrip);
@@ -256,7 +238,7 @@ public class TestTIPPackage {
         os.close();
         TIPPLoadStatus status = new TIPPLoadStatus();
         TIPP roundTrip = 
-            TIPPFactory.openFromStream(new FileInputStream(temp), new InMemoryBackingStore(), status);
+            new TIPPFactory().openFromStream(new FileInputStream(temp), status);
         assertEquals(0, status.getAllErrors().size());
         assertNotNull(roundTrip);
         assertEquals(tipp.getPackageId(), roundTrip.getPackageId());
@@ -303,9 +285,8 @@ public class TestTIPPackage {
         System.out.println("Wrote package to " + temp);
         TIPPLoadStatus status = new TIPPLoadStatus();
         TIPP roundTrip = 
-            TIPPFactory.openFromStream(new FileInputStream(temp), 
-                    new InMemoryBackingStore(), status, 
-                    KeySelector.singletonKeySelector(kp.getPublic()));
+            new TIPPFactory().openFromStream(new FileInputStream(temp), 
+                    status, KeySelector.singletonKeySelector(kp.getPublic()));
         TestUtils.expectLoadStatus(status, 0, TIPPErrorSeverity.NONE);
         assertNotNull(roundTrip);
         assertEquals(tipp.getPackageId(), roundTrip.getPackageId());
@@ -321,7 +302,7 @@ public class TestTIPPackage {
     private TIPP getSamplePackage(String path, TIPPLoadStatus status) throws Exception {
         InputStream is = 
             getClass().getResourceAsStream(path);
-        return TIPPFactory.openFromStream(is, new InMemoryBackingStore(), status);
+        return new TIPPFactory().openFromStream(is, status);
     }
     
     private void comparePackageParts(TIPP p1, TIPP p2) throws Exception {
