@@ -59,7 +59,7 @@ public class TestTIPManifest {
         TestUtils.expectLoadStatus(status, 0, TIPPErrorSeverity.NONE);
         verifyRequestManifest(manifest);
     }
-    
+
     @Test
     public void testInvalidResponseMessage() throws Exception {
         Manifest manifest = new Manifest(null);
@@ -296,6 +296,15 @@ public class TestTIPManifest {
         TIPPReferenceSection refSection = manifest.getReferenceSection();
         assertNotNull(refSection);
         // TODO: more tests
+    }
+
+    // Verify that if no name is set in a TIPPFile, it defaults to 
+    // the location
+    @Test
+    public void testFileNameAndLocation() throws Exception {
+        TIPPFile file = new TIPPFile("foo");
+        assertEquals("foo", file.getLocation());
+        assertEquals("foo", file.getName());
     }
 
     private Manifest roundtripManifest(Manifest src, TIPPLoadStatus status) throws Exception {
