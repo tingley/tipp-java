@@ -14,16 +14,11 @@ import java.security.KeyPairGenerator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import javax.xml.crypto.KeySelector;
 
 import org.junit.*;
 
-import com.spartansoftwareinc.tipp.FileSystemBackingStore;
 import com.spartansoftwareinc.tipp.FileUtil;
 import com.spartansoftwareinc.tipp.InMemoryBackingStore;
 import com.spartansoftwareinc.tipp.PackageStore;
@@ -41,8 +36,6 @@ import com.spartansoftwareinc.tipp.TIPPResource;
 import com.spartansoftwareinc.tipp.TIPPSection;
 import com.spartansoftwareinc.tipp.TIPPSectionType;
 import com.spartansoftwareinc.tipp.TIPPTool;
-import com.spartansoftwareinc.tipp.TempFileBackingStore;
-
 import static org.junit.Assert.*;
 
 public class TestTIPPackage {

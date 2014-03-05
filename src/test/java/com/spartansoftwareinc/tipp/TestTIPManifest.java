@@ -31,6 +31,7 @@ import java.io.*;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -296,6 +297,21 @@ public class TestTIPManifest {
         TIPPReferenceSection refSection = manifest.getReferenceSection();
         assertNotNull(refSection);
         // TODO: more tests
+    }
+
+    @Test
+    public void testSectionOrdering() throws Exception {
+        Manifest manifest = new Manifest(null);
+        TIPPLoadStatus status = new TIPPLoadStatus();
+        manifest.loadFromStream(getClass().getResourceAsStream(
+                "data/out_of_order_resources.xml"), status);
+        TestTIPPackage.checkErrors(status, 0);
+        TIPPSection section = manifest.getSection(TIPPSectionType.BILINGUAL);
+        assertNotNull(section);
+        List<TIPPResource> l = Arrays.asList(section.getResources().toArray(new TIPPResource[0]));
+        assertEquals(2, l.size());
+        assertEquals("1.xlf", ((TIPPFile)l.get(0)).getLocation());
+        assertEquals("2.xlf", ((TIPPFile)l.get(1)).getLocation());
     }
 
     // Verify that if no name is set in a TIPPFile, it defaults to 
