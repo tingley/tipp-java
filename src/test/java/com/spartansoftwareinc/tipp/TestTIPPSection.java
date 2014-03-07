@@ -16,7 +16,7 @@ public class TestTIPPSection {
         TIPPSection s = new TIPPSection(TIPPSectionType.BILINGUAL);
         s.addFile("test1");
         s.addFile("test2");
-        List<TIPPResource> l = s.getResources();
+        List<? extends TIPPResource> l = s.getResources();
         assertEquals(2, l.size());
         checkFile(1, "test1", "test1", l.get(0));
         checkFile(2, "test2", "test2", l.get(1));
@@ -36,7 +36,7 @@ public class TestTIPPSection {
         s.addFile("test1");
         s.addFile("test2");
         s.removeResource("test1");
-        List<TIPPResource> l = s.getResources();
+        List<? extends TIPPResource> l = s.getResources();
         assertEquals(1, l.size());
         checkFile(2, "test2", "test2", l.get(0));
         

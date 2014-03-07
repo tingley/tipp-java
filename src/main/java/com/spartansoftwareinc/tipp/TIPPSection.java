@@ -57,7 +57,7 @@ public class TIPPSection {
      * sequence number.  The contents of this list can't be modified.
      * @return list of contents.
      */
-    public List<TIPPResource> getResources() {
+    public List<? extends TIPPResource> getResources() {
         if (!sorted) {
             Collections.sort(resources, SEQUENCE_COMPARATOR);
             sorted = true;

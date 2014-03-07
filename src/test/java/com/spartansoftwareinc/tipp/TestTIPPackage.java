@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+
 import javax.xml.crypto.KeySelector;
 
 import org.junit.*;
@@ -36,6 +38,7 @@ import com.spartansoftwareinc.tipp.TIPPResource;
 import com.spartansoftwareinc.tipp.TIPPSection;
 import com.spartansoftwareinc.tipp.TIPPSectionType;
 import com.spartansoftwareinc.tipp.TIPPTool;
+
 import static org.junit.Assert.*;
 
 public class TestTIPPackage {
@@ -306,14 +309,13 @@ public class TestTIPPackage {
         assertEquals(s1, s2);
         for (TIPPSection s : s1) {
             TIPPSectionType type = s.getType();
-        	Collection<TIPPResource> o1 = s.getResources();
-        	Collection<TIPPResource> o2 = p2.getSection(type).getResources();
+        	List<? extends TIPPResource> o1 = s.getResources();
+        	List<? extends TIPPResource> o2 = p2.getSection(type).getResources();
         	assertNotNull(o1);
         	assertNotNull(o2);
         	assertEquals(o1, o2);
-	        // XXX Again, this cheats slightly by assuming a particular order
-            Iterator<TIPPResource> fit1 = o1.iterator();
-            Iterator<TIPPResource> fit2 = o2.iterator();
+            Iterator<? extends TIPPResource> fit1 = o1.iterator();
+            Iterator<? extends TIPPResource> fit2 = o2.iterator();
             while (fit1.hasNext()) {
                 TIPPResource f1 = fit1.next();
                 assertTrue(fit2.hasNext());
@@ -385,16 +387,14 @@ public class TestTIPPackage {
         assertEquals("en-US", tip.getSourceLocale());
         assertEquals("fr-FR", tip.getTargetLocale());
 
-        // XXX This test is cheating by assuming a particular order,
-        // which is not guaranteed
         expectObjectSection(tip, TIPPSectionType.BILINGUAL,
                 new ArrayList<TIPPResource>() { {
                         add(new TIPPFile("Peanut_Butter.xlf", 1)); }});
     }
     
     private static void expectObjectSection(TIPP tipp,
-            TIPPSectionType type, Collection<TIPPResource> files) {
-        Collection<TIPPResource> found = tipp.getSection(type).getResources();
+            TIPPSectionType type, List<TIPPResource> files) {
+        List<? extends TIPPResource> found = tipp.getSection(type).getResources();
         assertNotNull(found);
         assertEquals(files, found);
     }
