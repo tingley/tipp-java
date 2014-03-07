@@ -27,10 +27,6 @@ public class TIPPSection {
     TIPPSection(TIPPSectionType type) {
         this.type = type;
     }
-    
-    protected int getNextSequence() {
-        return nextSequence;
-    }
 
     public TIPPSectionType getType() {
         return type;
@@ -92,12 +88,24 @@ public class TIPPSection {
         return null;
     }
     
-    protected TIPPFile createFile(String name) {
-        return new TIPPFile(name, name, nextSequence++);
+    protected int getNextSequence() {
+        return nextSequence++;
+    }
+    
+    protected String getLocationForName(String name) {
+        return name; // no-op for now
+    }
+    
+    protected TIPPFile createFile(String name, int sequence) {
+        return new TIPPFile(name, getLocationForName(name), sequence);
     }
     
     public TIPPFile addFile(String name) {
-        return _addFile(createFile(name));
+        return _addFile(createFile(name, getNextSequence()));
+    }
+    
+    public TIPPFile addFile(String name, int sequence) {
+        return _addFile(createFile(name,  sequence));
     }
 
     /**
