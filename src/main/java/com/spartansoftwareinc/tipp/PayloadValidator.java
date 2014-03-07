@@ -28,7 +28,7 @@ class PayloadValidator {
                 if (obj instanceof TIPPFile) {
                     String expectedPath = ((TIPPFile)obj).getCanonicalObjectPath();
                     if (pathsInManifest.contains(expectedPath)) {
-                        status.addError(TIPPError.Type.DUPLICATE_RESOURCE_IN_MANIFEST,
+                        status.addError(TIPPError.Type.DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST,
                                 "Duplicate resource in manifest: " + expectedPath);
                     }
                     if (!objectPaths.contains(expectedPath)) {

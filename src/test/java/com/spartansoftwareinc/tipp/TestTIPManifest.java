@@ -133,7 +133,18 @@ public class TestTIPManifest {
         new PayloadValidator().validate(manifest, 
                 new TestStore(Collections.singleton("bilingual/Peanut_Butter.xlf")), status);
         TestTIPPackage.checkErrors(status, 1);
-        assertEquals(TIPPError.Type.DUPLICATE_RESOURCE_IN_MANIFEST, 
+        assertEquals(TIPPError.Type.DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST, 
+                status.getAllErrors().get(0).getErrorType());
+    }
+
+    @Test
+    public void testDuplicateResourceSequencesInManifest() throws Exception {
+        TIPPLoadStatus status = new TIPPLoadStatus();
+        Manifest manifest = new Manifest(null);
+        manifest.loadFromStream(getClass().getResourceAsStream(
+                "data/duplicate_sequences.xml"), status);
+        TestTIPPackage.checkErrors(status, 1);
+        assertEquals(TIPPError.Type.DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST, 
                 status.getAllErrors().get(0).getErrorType());
     }
 

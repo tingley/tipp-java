@@ -61,6 +61,15 @@ public class TestTIPPSection {
         checkFile(2, "test2", "test2", l.get(1));
     }
 
+    @Test
+    public void testAddFileWithLargeSequence() {
+        TIPPSection s = new TIPPSection(TIPPSectionType.BILINGUAL);
+        s.addFile("test", 200);
+        List<? extends TIPPFile> l = s.getResources();
+        assertEquals(1, l.size());
+        checkFile(200, "test", "test", l.get(0));
+    }
+
     private void checkFile(int sequence, String name, String location, TIPPFile f) {
         assertEquals(sequence, f.getSequence());
         assertEquals(name, f.getName());

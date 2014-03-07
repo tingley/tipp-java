@@ -20,12 +20,14 @@ public abstract class TIPPResource {
 
     private String name;
     private int sequence = 1;
+    private boolean sequenceSet = false; // yuck
     
     TIPPResource() { }
     
     TIPPResource(String name, int sequence) {
         this.name = name;
         this.sequence = sequence;
+        sequenceSet = true;
     }
     
     PackageBase getPackage() {
@@ -56,12 +58,27 @@ public abstract class TIPPResource {
         this.name = name;
     }
 
+    boolean sequenceIsSet() {
+        return sequenceSet;
+    }
+    
     public int getSequence() {
         return sequence;
     }
 
+    /**
+     * Set the sequence number for this reset.  Sequence numbers
+     * must be non-zero positive integers. 
+     * @param sequence new sequence number
+     * @throws IllegalArgumentException if an invalid sequence number is
+     *         supplied
+     */
     public void setSequence(int sequence) {
+        if (sequence <= 0) {
+            throw new IllegalArgumentException("Invalid sequence number: " + sequence);
+        }
         this.sequence = sequence;
+        this.sequenceSet = true;
     }
     
     abstract Element toElement(Document doc);

@@ -273,12 +273,13 @@ class Manifest {
             return null; // Should never happen
         }
         String sectionName = section.getAttribute(ATTR_SECTION_NAME);
+        // XXX Too much duplicated code in these two clauses, needs a refactor
         if (type.equals(TIPPSectionType.REFERENCE)) {
             TIPPReferenceSection refSection = new TIPPReferenceSection();
             NodeList children = section.getElementsByTagName(REFERENCE_FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
-                refSection.addFile(loadReferenceFile((Element)children.item(i),
-                        status));
+                TIPPReferenceFile file = loadReferenceFile((Element)children.item(i), status);
+                addFileToSection(refSection, file, status);
             }
             return refSection;
         }
@@ -287,13 +288,28 @@ class Manifest {
             objSection.setPackage(tipPackage);
             NodeList children = section.getElementsByTagName(FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
-                objSection.addFile(loadFile((Element)children.item(i),
-                        status));
+                TIPPFile file = loadFile((Element)children.item(i), status);
+                addFileToSection(objSection, file, status);
             }
             return objSection;
         }
     }
-    
+
+    private void addFileToSection(TIPPSection section, TIPPFile file,
+                                  TIPPLoadStatus status) {
+        // For now, we will require sequence numbers to be present.  The spec
+        // implies this, but the schema doesn't require it!  However, that issue
+        // is caught elsewhere, so this code just needs to not crash.
+        if (file.sequenceIsSet() && section.checkSequence(file.getSequence())) {
+            status.addError(Type.DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST,
+                    "Duplicate sequence number in " + section.getType().getElementName() +
+                    ": " + file.getSequence());
+        }
+        else {
+            section.addFile(file);
+        }
+    }
+
     private TIPPReferenceFile loadReferenceFile(Element file,
                             TIPPLoadStatus status) {
         TIPPReferenceFile object = new TIPPReferenceFile();
@@ -317,6 +333,7 @@ class Manifest {
         object.setPackage(tipPackage);
         String rawSequence = file.getAttribute(ObjectFile.ATTR_SEQUENCE);
         try {
+            // The schema will enforce that this is an integer > 0
             object.setSequence(Integer.parseInt(rawSequence));
         }
         catch (NumberFormatException e) {

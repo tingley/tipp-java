@@ -21,7 +21,10 @@ public class TIPPError {
         INVALID_SECTION_FOR_TASK(ERROR),
         MISSING_PAYLOAD_RESOURCE(ERROR),
         UNEXPECTED_PAYLOAD_RESOURCE(ERROR),
-        DUPLICATE_RESOURCE_IN_MANIFEST(ERROR),
+        // Same resource location appeared twice
+        DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST(ERROR),
+        // Same sequence appeared twice in a section
+        DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST(ERROR),
         INVALID_SIGNATURE(ERROR),
         UNABLE_TO_VERIFY_SIGNATURE(WARN);
         

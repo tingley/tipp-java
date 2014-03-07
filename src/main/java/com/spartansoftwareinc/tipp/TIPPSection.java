@@ -3,6 +3,7 @@ package com.spartansoftwareinc.tipp;
 import static com.spartansoftwareinc.tipp.TIPPConstants.ATTR_SECTION_NAME;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +22,7 @@ public class TIPPSection {
     private List<TIPPFile> resources = new ArrayList<TIPPFile>();
     private boolean sorted = false;
     private int nextSequence = INITIAL_SEQUENCE;
+    private BitSet sequenceNumbers = new BitSet(8);
 
     TIPPSection() { }
 
@@ -51,6 +53,7 @@ public class TIPPSection {
         resources.clear();
         sorted = true;
         nextSequence = INITIAL_SEQUENCE;
+        sequenceNumbers.clear();
     }
     
     /**
@@ -78,9 +81,10 @@ public class TIPPSection {
             if (r.getName().equals(name)) {
                 sorted = false;
                 TIPPResource removed = resources.remove(i);
-                // If the section is empty, restart sequence allocation
+                sequenceNumbers.clear(removed.getSequence());
+                // If the section is empty, reset everything
                 if (resources.size() == 0) {
-                    nextSequence = INITIAL_SEQUENCE;
+                    clear();
                 }
                 return removed;
             }
@@ -100,10 +104,25 @@ public class TIPPSection {
         return new TIPPFile(name, getLocationForName(name), sequence);
     }
     
+    /**
+     * Add a TIPPFile with the specified name to this section. A 
+     * sequence number will be allocated automatically.
+     * @param name
+     * @return newly created TIPPFile
+     */
     public TIPPFile addFile(String name) {
         return _addFile(createFile(name, getNextSequence()));
     }
-    
+
+    /**
+     * Add a TIPPFile with the specified name and sequence number to
+     * this section.
+     * @param name
+     * @param sequence
+     * @return newly created TIPPFile
+     * @throws IllegalArgumentException if the specified sequence is already
+     *         in use 
+     */
     public TIPPFile addFile(String name, int sequence) {
         return _addFile(createFile(name,  sequence));
     }
@@ -116,8 +135,23 @@ public class TIPPSection {
     void addFile(TIPPFile file) {
         _addFile(file);
     }
+
+    /**
+     * Return true if the specified sequence number is in use. 
+     */
+    boolean checkSequence(int sequence) {
+        return sequenceNumbers.get(sequence);
+    }
     
     private TIPPFile _addFile(TIPPFile file) {
+        if (file.getSequence() < 1) {
+            throw new IllegalArgumentException("Invalid sequence number: " + file.getSequence());
+        }
+        if (sequenceNumbers.get(file.getSequence())) {
+            throw new IllegalArgumentException("Sequence number already in use for section " +
+                type + ": " + file.getSequence());
+        }
+        sequenceNumbers.set(file.getSequence());
         sorted = false;
         resources.add(file);
         file.setPackage(tipp);
