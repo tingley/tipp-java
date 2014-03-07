@@ -13,18 +13,9 @@ public class TIPPFile extends TIPPResource {
      * Constructor where name and location are the same.
      * @param location
      */
-    
-    TIPPFile(String location) {
-        super(location);
-        this.location = location;
-    }
 
     TIPPFile(String location, int sequence) {
         super(location, sequence);
-        this.location = location;
-    }
-    TIPPFile(String location, String name) {
-        super(name);
         this.location = location;
     }
     

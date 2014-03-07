@@ -7,7 +7,7 @@ public class TIPPReferenceSection extends TIPPSection {
     }
     
     protected TIPPFile createFile(String name) {
-        return new TIPPReferenceFile(name, name);
+        return new TIPPReferenceFile(name, name, getNextSequence());
     }
     
     public TIPPReferenceFile addFile(String name) {

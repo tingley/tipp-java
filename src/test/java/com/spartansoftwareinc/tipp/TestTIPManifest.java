@@ -270,7 +270,7 @@ public class TestTIPManifest {
         manifest.getTask().setTargetLocale("jp-JP");
         // Add a section
         final TIPPFile file = 
-                new TIPPFile("test.xlf", "test.xlf");
+                new TIPPFile("test.xlf", "test.xlf", 1);
         // This is ugly, but it's also not something the average user
         // ever has to do.  Maybe I can improve it eventually.
         TIPPSection section = manifest.addSection(
@@ -299,6 +299,8 @@ public class TestTIPManifest {
         // TODO: more tests
     }
 
+    // XXX I think this is failing because I'm getting sequence # from 
+    // the size of the list, not the sequence attribute
     @Test
     public void testSectionOrdering() throws Exception {
         Manifest manifest = new Manifest(null);
@@ -318,9 +320,10 @@ public class TestTIPManifest {
     // the location
     @Test
     public void testFileNameAndLocation() throws Exception {
-        TIPPFile file = new TIPPFile("foo");
+        TIPPFile file = new TIPPFile("foo", 1);
         assertEquals("foo", file.getLocation());
         assertEquals("foo", file.getName());
+        assertEquals(1, file.getSequence());
     }
 
     private Manifest roundtripManifest(Manifest src, TIPPLoadStatus status) throws Exception {
@@ -356,7 +359,7 @@ public class TestTIPManifest {
         // which is not guaranteed
         expectObjectSection(manifest, TIPPSectionType.BILINGUAL,
                 Collections.singletonList(
-                        new TIPPFile("Peanut_Butter.xlf")));
+                        new TIPPFile("Peanut_Butter.xlf", 1)));
         expectObjectSection(manifest, TIPPSectionType.PREVIEW,
                 new ArrayList<TIPPFile>() {
                     {

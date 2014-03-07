@@ -16,10 +16,6 @@ public abstract class TIPPResource {
     
     TIPPResource() { }
     
-    TIPPResource(String name) {
-        this.name = name;
-    }
-    
     TIPPResource(String name, int sequence) {
         this.name = name;
         this.sequence = sequence;

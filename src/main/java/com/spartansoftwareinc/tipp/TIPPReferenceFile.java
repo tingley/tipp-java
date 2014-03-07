@@ -13,8 +13,8 @@ public class TIPPReferenceFile extends TIPPFile {
         super();
     }
     
-    TIPPReferenceFile(String location, String name) {
-        super(location, name);
+    TIPPReferenceFile(String location, String name, int sequence) {
+        super(location, name, sequence);
     }
     
     public LanguageChoice getLanguageChoice() {
