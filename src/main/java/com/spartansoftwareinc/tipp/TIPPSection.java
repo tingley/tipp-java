@@ -1,7 +1,6 @@
 package com.spartansoftwareinc.tipp;
 
 import static com.spartansoftwareinc.tipp.TIPPConstants.ATTR_SECTION_NAME;
-import static com.spartansoftwareinc.tipp.TIPPConstants.FILE_RESOURCE;
 
 import java.util.ArrayList;
 import java.util.Collections;

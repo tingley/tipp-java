@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import com.spartansoftwareinc.tipp.FileSystemBackingStore;
-import com.spartansoftwareinc.tipp.PackageStore;
 import com.spartansoftwareinc.tipp.TIPP;
 import com.spartansoftwareinc.tipp.TIPPError;
 import com.spartansoftwareinc.tipp.TIPPFactory;

@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -39,6 +37,12 @@ import com.spartansoftwareinc.tipp.TIPPError.Type;
 
 import javax.xml.crypto.KeySelector;
 
+/**
+ * This class is unfortunately contains both the representation
+ * and the logic to assemble it from XML.
+ * @author chase
+ *
+ */
 class Manifest {
 
     static final String XMLDSIG_SCHEMA_URI = 

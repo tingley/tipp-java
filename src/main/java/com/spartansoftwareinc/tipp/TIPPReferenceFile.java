@@ -1,6 +1,5 @@
 package com.spartansoftwareinc.tipp;
 
-import static com.spartansoftwareinc.tipp.TIPPConstants.FILE_RESOURCE;
 import static com.spartansoftwareinc.tipp.TIPPConstants.REFERENCE_FILE_RESOURCE;
 
 import org.w3c.dom.Document;
