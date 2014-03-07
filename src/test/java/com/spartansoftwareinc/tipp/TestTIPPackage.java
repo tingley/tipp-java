@@ -34,7 +34,6 @@ import com.spartansoftwareinc.tipp.TIPPErrorSeverity;
 import com.spartansoftwareinc.tipp.TIPPFactory;
 import com.spartansoftwareinc.tipp.TIPPFile;
 import com.spartansoftwareinc.tipp.TIPPLoadStatus;
-import com.spartansoftwareinc.tipp.TIPPResource;
 import com.spartansoftwareinc.tipp.TIPPSection;
 import com.spartansoftwareinc.tipp.TIPPSectionType;
 import com.spartansoftwareinc.tipp.TIPPTool;
@@ -309,17 +308,17 @@ public class TestTIPPackage {
         assertEquals(s1, s2);
         for (TIPPSection s : s1) {
             TIPPSectionType type = s.getType();
-        	List<? extends TIPPResource> o1 = s.getResources();
-        	List<? extends TIPPResource> o2 = p2.getSection(type).getResources();
+        	List<? extends TIPPFile> o1 = s.getResources();
+        	List<? extends TIPPFile> o2 = p2.getSection(type).getResources();
         	assertNotNull(o1);
         	assertNotNull(o2);
         	assertEquals(o1, o2);
-            Iterator<? extends TIPPResource> fit1 = o1.iterator();
-            Iterator<? extends TIPPResource> fit2 = o2.iterator();
+            Iterator<? extends TIPPFile> fit1 = o1.iterator();
+            Iterator<? extends TIPPFile> fit2 = o2.iterator();
             while (fit1.hasNext()) {
-                TIPPResource f1 = fit1.next();
+                TIPPFile f1 = fit1.next();
                 assertTrue(fit2.hasNext());
-                TIPPResource f2 = fit2.next();
+                TIPPFile f2 = fit2.next();
                 assertEquals(f1, f2);
                 InputStream is1 = f1.getInputStream();
                 InputStream is2 = f2.getInputStream();
@@ -350,10 +349,10 @@ public class TestTIPPackage {
         // XXX This test is cheating by assuming a particular order,
         // which is not guaranteed
         expectObjectSection(tip, TIPPSectionType.BILINGUAL,
-                new ArrayList<TIPPResource>() { {
+                new ArrayList<TIPPFile>() { {
                         add(new TIPPFile("Peanut_Butter.xlf", 1)); }});
         expectObjectSection(tip, TIPPSectionType.PREVIEW,
-                new ArrayList<TIPPResource>() {
+                new ArrayList<TIPPFile>() {
                     {
                         add(new TIPPFile(
                                 "Peanut_Butter.html.skl", 1));
@@ -388,13 +387,13 @@ public class TestTIPPackage {
         assertEquals("fr-FR", tip.getTargetLocale());
 
         expectObjectSection(tip, TIPPSectionType.BILINGUAL,
-                new ArrayList<TIPPResource>() { {
+                new ArrayList<TIPPFile>() { {
                         add(new TIPPFile("Peanut_Butter.xlf", 1)); }});
     }
     
     private static void expectObjectSection(TIPP tipp,
-            TIPPSectionType type, List<TIPPResource> files) {
-        List<? extends TIPPResource> found = tipp.getSection(type).getResources();
+            TIPPSectionType type, List<TIPPFile> files) {
+        List<? extends TIPPFile> found = tipp.getSection(type).getResources();
         assertNotNull(found);
         assertEquals(files, found);
     }

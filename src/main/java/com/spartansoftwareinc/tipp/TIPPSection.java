@@ -13,7 +13,7 @@ public class TIPPSection {
     private static int INITIAL_SEQUENCE = 1;
     private PackageBase tipp;
     private TIPPSectionType type;
-    private List<TIPPResource> resources = new ArrayList<TIPPResource>();
+    private List<TIPPFile> resources = new ArrayList<TIPPFile>();
     private boolean sorted = false;
     private int nextSequence = INITIAL_SEQUENCE;
 
@@ -57,7 +57,7 @@ public class TIPPSection {
      * sequence number.  The contents of this list can't be modified.
      * @return list of contents.
      */
-    public List<? extends TIPPResource> getResources() {
+    public List<? extends TIPPFile> getResources() {
         if (!sorted) {
             Collections.sort(resources, SEQUENCE_COMPARATOR);
             sorted = true;

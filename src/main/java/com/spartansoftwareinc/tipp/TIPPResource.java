@@ -1,11 +1,18 @@
 package com.spartansoftwareinc.tipp;
 
+import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.spartansoftwareinc.tipp.TIPPConstants.ObjectFile;
+
 /**
- * Represents a TIP resource represented as a file.
+ * Represents a TIPP resource represented as a file.
  */
 public abstract class TIPPResource {
     private PackageBase tipPackage;
@@ -55,6 +62,16 @@ public abstract class TIPPResource {
 
     public void setSequence(int sequence) {
         this.sequence = sequence;
+    }
+    
+    abstract Element toElement(Document doc);
+    
+    protected Element addChildren(Document doc, Element resourceElement) {
+        resourceElement.setAttribute(ObjectFile.ATTR_SEQUENCE, 
+                                     String.valueOf(getSequence()));
+        appendElementChildWithText(doc, resourceElement, ObjectFile.NAME,
+                                   getName());
+        return resourceElement;
     }
     
     @Override

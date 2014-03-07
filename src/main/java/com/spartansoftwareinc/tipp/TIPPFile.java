@@ -1,8 +1,16 @@
 package com.spartansoftwareinc.tipp;
 
+import static com.spartansoftwareinc.tipp.TIPPConstants.FILE_RESOURCE;
+import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.spartansoftwareinc.tipp.TIPPConstants.ObjectFile;
 
 public class TIPPFile extends TIPPResource {
     private String location;
@@ -49,6 +57,18 @@ public class TIPPFile extends TIPPResource {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    Element toElement(Document doc) {
+        return addChildren(doc, doc.createElement(FILE_RESOURCE));
+    }
+    
+    @Override
+    protected Element addChildren(Document doc, Element resourceElement) {
+        super.addChildren(doc, resourceElement);
+        appendElementChildWithText(doc, resourceElement, ObjectFile.LOCATION,
+                                   getLocation());
+        return resourceElement;
     }
 
     @Override

@@ -16,7 +16,6 @@ import com.spartansoftwareinc.tipp.TIPPFactory;
 import com.spartansoftwareinc.tipp.TIPPFile;
 import com.spartansoftwareinc.tipp.TIPPLoadStatus;
 import com.spartansoftwareinc.tipp.TIPPReferenceSection;
-import com.spartansoftwareinc.tipp.TIPPResource;
 import com.spartansoftwareinc.tipp.TIPPResponseCode;
 import com.spartansoftwareinc.tipp.TIPPSection;
 import com.spartansoftwareinc.tipp.TIPPSectionType;
@@ -310,7 +309,7 @@ public class TestTIPManifest {
         TestTIPPackage.checkErrors(status, 0);
         TIPPSection section = manifest.getSection(TIPPSectionType.BILINGUAL);
         assertNotNull(section);
-        List<TIPPResource> l = Arrays.asList(section.getResources().toArray(new TIPPResource[0]));
+        List<TIPPFile> l = Arrays.asList(section.getResources().toArray(new TIPPFile[0]));
         assertEquals(2, l.size());
         assertEquals("1.xlf", ((TIPPFile)l.get(0)).getLocation());
         assertEquals("2.xlf", ((TIPPFile)l.get(1)).getLocation());
@@ -429,7 +428,7 @@ public class TestTIPManifest {
         assertNotNull(section);
         assertEquals(type, section.getType());
         assertEquals(files,
-                new ArrayList<TIPPResource>(section.getResources()));
+                new ArrayList<TIPPFile>(section.getResources()));
     }
     
     private TIPP getSamplePackage(String path, TIPPLoadStatus status) throws Exception {

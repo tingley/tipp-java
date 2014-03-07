@@ -1,5 +1,13 @@
 package com.spartansoftwareinc.tipp;
 
+import static com.spartansoftwareinc.tipp.TIPPConstants.FILE_RESOURCE;
+import static com.spartansoftwareinc.tipp.TIPPConstants.REFERENCE_FILE_RESOURCE;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.spartansoftwareinc.tipp.TIPPConstants.ObjectFile;
+
 public class TIPPReferenceFile extends TIPPFile {
 
     public enum LanguageChoice {
@@ -24,7 +32,16 @@ public class TIPPReferenceFile extends TIPPFile {
     public void setLanguageChoice(LanguageChoice choice) {
         this.languageChoice = choice;
     }
-    
+
+    Element toElement(Document doc) {
+        Element el = doc.createElement(REFERENCE_FILE_RESOURCE);
+        if (getLanguageChoice() != null) {
+            el.setAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE, 
+                            getLanguageChoice().name());
+        }
+        return addChildren(doc, el);
+    }
+
     @Override
     public int hashCode() {
         return super.hashCode() * 31 +

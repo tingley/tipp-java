@@ -3,7 +3,6 @@ package com.spartansoftwareinc.tipp;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.KeyPair;
-import java.util.List;
 import java.util.Collection;
 
 public interface TIPP {

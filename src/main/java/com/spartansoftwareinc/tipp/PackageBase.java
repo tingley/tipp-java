@@ -193,15 +193,13 @@ abstract class PackageBase implements TIPP {
      */
     void writeZipPayload(ZipArchiveOutputStream zos) throws IOException {
         for (TIPPSection section : manifest.getSections()) {
-            for (TIPPResource file : section.getResources()) {
-                if (file instanceof TIPPFile) {
-                    String path = ((TIPPFile)file).getCanonicalObjectPath();
-                    zos.putArchiveEntry(new ZipArchiveEntry(path));
-                    InputStream is = file.getInputStream();
-                    FileUtil.copyStreamToStream(is, zos);
-                    zos.closeArchiveEntry();
-                    is.close();
-                }
+            for (TIPPFile file : section.getResources()) {
+                String path = ((TIPPFile)file).getCanonicalObjectPath();
+                zos.putArchiveEntry(new ZipArchiveEntry(path));
+                InputStream is = file.getInputStream();
+                FileUtil.copyStreamToStream(is, zos);
+                zos.closeArchiveEntry();
+                is.close();
             }
         }
         zos.flush();

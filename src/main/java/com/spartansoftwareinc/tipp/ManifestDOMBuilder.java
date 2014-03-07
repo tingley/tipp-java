@@ -135,33 +135,9 @@ class ManifestDOMBuilder {
     private Element makeObjectSection(TIPPSection section) {
         Element sectionEl = document.createElement(section.getType().getElementName());
         sectionEl.setAttribute(ATTR_SECTION_NAME, section.getType().getElementName());
-        for (TIPPResource file : section.getResources()) {
-            sectionEl.appendChild(makeObjectFile(file));
+        for (TIPPFile file : section.getResources()) {
+            sectionEl.appendChild(file.toElement(document));
         }
         return sectionEl;
-    }
-    
-    private Element makeObjectFile(TIPPResource file) {
-        Element fileEl = null;
-        // TODO: it would be nice if there were a better way to do this
-        if (file instanceof TIPPReferenceFile) {
-            fileEl = document.createElement(REFERENCE_FILE_RESOURCE);
-            TIPPReferenceFile refObj = (TIPPReferenceFile)file;
-            if (refObj.getLanguageChoice() != null) {
-                fileEl.setAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE, 
-                        refObj.getLanguageChoice().name());
-            }
-        }
-        else {
-            fileEl = document.createElement(FILE_RESOURCE);
-        }
-        fileEl.setAttribute(ObjectFile.ATTR_SEQUENCE, String.valueOf(file.getSequence()));
-        appendElementChildWithText(document, fileEl, ObjectFile.NAME,
-                                   file.getName());
-        if (file instanceof TIPPFile) {
-            appendElementChildWithText(document, fileEl, ObjectFile.LOCATION,
-                    ((TIPPFile)file).getLocation());
-        }
-        return fileEl;
     }
 }
