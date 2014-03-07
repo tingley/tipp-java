@@ -468,22 +468,7 @@ class Manifest {
     public TIPPReferenceSection getReferenceSection() {
         return (TIPPReferenceSection)sections.get(TIPPSectionType.REFERENCE);
     }
-    
-    public TIPPSection addSection(TIPPSectionType type) {
-    	// If we were created with a task type object, restrict the 
-    	// section type to one of the choices for this task type.
-    	if (taskType != null) {
-    		if (!taskType.getSupportedSectionTypes().contains(type)) {
-    			throw new IllegalArgumentException("Section type " + type + 
-					" is not supported for task type " + taskType.getType());
-    		}
-    	}
-    	TIPPSection section = createSection(type);
-        section.setPackage(tipPackage);
-        sections.put(type, section);
-        return section;
-    }
-    
+
     // TODO: Clean this up?
     private TIPPSection createSection(TIPPSectionType type) {
         if (type == TIPPSectionType.REFERENCE) {

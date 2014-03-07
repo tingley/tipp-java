@@ -273,7 +273,7 @@ public class TestTIPManifest {
                 new TIPPFile("test.xlf", "test.xlf", 1);
         // This is ugly, but it's also not something the average user
         // ever has to do.  Maybe I can improve it eventually.
-        TIPPSection section = manifest.addSection(
+        TIPPSection section = manifest.getSection(
                 TIPPSectionType.BILINGUAL);
         section.addFile(file);
         TIPPLoadStatus status = new TIPPLoadStatus();
