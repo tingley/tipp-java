@@ -1,6 +1,13 @@
 package com.spartansoftwareinc.tipp;
 
-class TIPPTask {
+import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.spartansoftwareinc.tipp.TIPPConstants.Task;
+
+abstract class TIPPTask {
 
     private String taskType;
     private String sourceLocale, targetLocale;
@@ -31,7 +38,19 @@ class TIPPTask {
     public void setTargetLocale(String targetLocale) {
         this.targetLocale = targetLocale;
     }
-    
+
+    abstract Element toElement(Document doc);
+
+    protected Element addTaskData(Document doc, Element el) {
+        appendElementChildWithText(doc, el, 
+                Task.TYPE, getTaskType());
+        appendElementChildWithText(doc, el, 
+                Task.SOURCE_LANGUAGE, getSourceLocale());        
+        appendElementChildWithText(doc, el, 
+                Task.TARGET_LANGUAGE, getTargetLocale());
+        return el;
+    }
+
     /**
      * TIPCreator objects are equal if and only if all fields match.  
      */

@@ -1,9 +1,15 @@
 package com.spartansoftwareinc.tipp;
 
+import static com.spartansoftwareinc.tipp.TIPPConstants.ATTR_SECTION_NAME;
+import static com.spartansoftwareinc.tipp.TIPPConstants.FILE_RESOURCE;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Represents a TIPP section.  Sections are identified by
@@ -114,7 +120,16 @@ public class TIPPSection {
         }
         return file;
     }
-    
+
+    Element toElement(Document doc) {
+        Element sectionEl = doc.createElement(getType().getElementName());
+        sectionEl.setAttribute(ATTR_SECTION_NAME, getType().getElementName());
+        for (TIPPFile file : getResources()) {
+            sectionEl.appendChild(file.toElement(doc));
+        }
+        return sectionEl;
+    }
+
     @Override
     public String toString() {
         return type.toString();

@@ -1,5 +1,14 @@
 package com.spartansoftwareinc.tipp;
 
+import static com.spartansoftwareinc.tipp.TIPPConstants.TASK_RESPONSE;
+import static com.spartansoftwareinc.tipp.TIPPConstants.UNIQUE_PACKAGE_ID;
+import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.spartansoftwareinc.tipp.TIPPConstants.TaskResponse;
+
 class TIPPTaskResponse extends TIPPTask {
     private String requestPackageId;
     private TIPPCreator requestCreator;
@@ -62,7 +71,28 @@ class TIPPTaskResponse extends TIPPTask {
     public void setComment(String comment) {
         this.comment = comment;
     }
-    
+
+    @Override
+    Element toElement(Document doc) {
+        Element responseEl = doc.createElement(TASK_RESPONSE);
+        responseEl.appendChild(makeInResponseTo(doc));
+        appendElementChildWithText(doc, responseEl,
+                TaskResponse.MESSAGE, getMessage().toString());
+        String comment = getComment() != null ? getComment() : "";
+        appendElementChildWithText(doc, responseEl,
+                TaskResponse.COMMENT, comment);        
+        return responseEl;
+    }
+
+    private Element makeInResponseTo(Document doc) {
+        Element inReEl = doc.createElement(TaskResponse.IN_RESPONSE_TO);
+        addTaskData(doc, inReEl);
+        appendElementChildWithText(doc, inReEl,
+                UNIQUE_PACKAGE_ID, getRequestPackageId());
+        inReEl.appendChild(getRequestCreator().toElement(doc));
+        return inReEl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!super.equals(o) || 

@@ -1,6 +1,14 @@
 package com.spartansoftwareinc.tipp;
 
+import static com.spartansoftwareinc.tipp.TIPPConstants.PACKAGE_CREATOR;
+import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
+
 import java.util.Date;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.spartansoftwareinc.tipp.TIPPConstants.Creator;
 
 public class TIPPCreator {
 
@@ -42,7 +50,19 @@ public class TIPPCreator {
     public void setTool(TIPPTool tool) {
         this.tool = tool;
     }
-    
+
+    Element toElement(Document doc) {
+        Element creatorEl = doc.createElement(PACKAGE_CREATOR);
+        appendElementChildWithText(doc, 
+                creatorEl, Creator.NAME, getName());
+        appendElementChildWithText(doc, 
+                creatorEl, Creator.ID, getId());
+        appendElementChildWithText(doc, creatorEl, Creator.UPDATE, 
+                DateUtil.writeTIPDate(getDate()));
+        creatorEl.appendChild(getTool().toElement(doc));
+        return creatorEl;
+    }
+
     /**
      * TIPCreator objects are equal if and only if all fields match.  
      */

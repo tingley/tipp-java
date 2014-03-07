@@ -1,5 +1,13 @@
 package com.spartansoftwareinc.tipp;
 
+import static com.spartansoftwareinc.tipp.TIPPConstants.TOOL;
+import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.spartansoftwareinc.tipp.TIPPConstants.ContributorTool;
+
 public class TIPPTool {
 
     private String name;
@@ -37,7 +45,18 @@ public class TIPPTool {
     public void setVersion(String version) {
         this.version = version;
     }
-    
+
+    Element toElement(Document doc) {
+        Element toolEl = doc.createElement(TOOL);
+        appendElementChildWithText(doc,
+                toolEl, ContributorTool.NAME, getName());
+        appendElementChildWithText(doc,
+                toolEl, ContributorTool.ID, getId());
+        appendElementChildWithText(doc,
+                toolEl, ContributorTool.VERSION, getVersion());
+        return toolEl;
+    }
+
     /**
      * TIPTool objects are equal if and only if all fields match.  
      */

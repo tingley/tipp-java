@@ -38,7 +38,7 @@ class ManifestDOMBuilder {
         // root.setAttributeNS("http://www.w3.org/2001/XMLSchema-instance", 
         //      "schemaLocation", SCHEMA_LOCATION);
         root.appendChild(makeDescriptor());
-        root.appendChild(makeTaskRequestOrResponse(manifest.getTask()));
+        root.appendChild(manifest.getTask().toElement(document));
         root.appendChild(makePackageObjects());
         root.setAttribute("xmlns", TIPP_NAMESPACE);
         root.setAttribute(ATTR_VERSION, SCHEMA_VERSION);
@@ -50,94 +50,15 @@ class ManifestDOMBuilder {
         Element descriptor = document.createElement(GLOBAL_DESCRIPTOR);
         appendElementChildWithText(document, 
                 descriptor, UNIQUE_PACKAGE_ID, manifest.getPackageId());
-        descriptor.appendChild(makePackageCreator(manifest.getCreator()));
+        descriptor.appendChild(manifest.getCreator().toElement(document));
         return descriptor;
     }
-    
-    private Element makePackageCreator(TIPPCreator creator) {
-        Element creatorEl = document.createElement(PACKAGE_CREATOR);
-        appendElementChildWithText(document, 
-                creatorEl, Creator.NAME, creator.getName());
-        appendElementChildWithText(document, 
-                creatorEl, Creator.ID, creator.getId());
-        appendElementChildWithText(document, creatorEl, Creator.UPDATE, 
-                DateUtil.writeTIPDate(creator.getDate()));
-        creatorEl.appendChild(makeContributorTool(creator.getTool()));
-        return creatorEl;
-    }
-    
-    private Element makeContributorTool(TIPPTool tool) {
-        Element toolEl = document.createElement(TOOL);
-        appendElementChildWithText(document,
-                toolEl, ContributorTool.NAME, tool.getName());
-        appendElementChildWithText(document,
-                toolEl, ContributorTool.ID, tool.getId());
-        appendElementChildWithText(document,
-                toolEl, ContributorTool.VERSION, tool.getVersion());
-        return toolEl;
-    }
-    
-    private Element makeTaskRequestOrResponse(TIPPTask task) {
-        if (task instanceof TIPPTaskRequest) {
-            return makeTaskRequest((TIPPTaskRequest)task);
-        }
-        else {
-            return makeTaskResponse((TIPPTaskResponse)task);
-        }
-    }
-    
-    private Element makeTaskRequest(TIPPTaskRequest request) {
-        Element requestEl = document.createElement(TASK_REQUEST);
-        appendTaskData(request, requestEl);
-        return requestEl;
-    }
-    
-    private Element appendTaskData(TIPPTask task, Element parent) {
-        appendElementChildWithText(document, parent, 
-                Task.TYPE, task.getTaskType());
-        appendElementChildWithText(document, parent, 
-                Task.SOURCE_LANGUAGE, task.getSourceLocale());        
-        appendElementChildWithText(document, parent, 
-                Task.TARGET_LANGUAGE, task.getTargetLocale());
-        return parent;
-    }
-    
-    private Element makeTaskResponse(TIPPTaskResponse response) {
-        Element responseEl = document.createElement(TASK_RESPONSE);
-        responseEl.appendChild(makeInResponseTo(response));
-        appendElementChildWithText(document, responseEl,
-                TaskResponse.MESSAGE, response.getMessage().toString());
-        String comment = response.getComment() != null ? 
-                response.getComment() : "";
-        appendElementChildWithText(document, responseEl,
-                TaskResponse.COMMENT, comment);        
-        return responseEl;
-    }
-    
-    private Element makeInResponseTo(TIPPTaskResponse response) {
-        Element inReEl = document.createElement(TaskResponse.IN_RESPONSE_TO);
-        appendTaskData(response, inReEl);
-        appendElementChildWithText(document, inReEl,
-                UNIQUE_PACKAGE_ID, response.getRequestPackageId());
-        inReEl.appendChild(makePackageCreator(response.getRequestCreator()));
-        return inReEl;
-    }
-    
-    
+ 
     private Element makePackageObjects() {
         Element objects = document.createElement(PACKAGE_OBJECTS);
         for (TIPPSection section : manifest.getSections()) {
-            objects.appendChild(makeObjectSection(section));
+            objects.appendChild(section.toElement(document));
         }
         return objects;
-    }
-    
-    private Element makeObjectSection(TIPPSection section) {
-        Element sectionEl = document.createElement(section.getType().getElementName());
-        sectionEl.setAttribute(ATTR_SECTION_NAME, section.getType().getElementName());
-        for (TIPPFile file : section.getResources()) {
-            sectionEl.appendChild(file.toElement(document));
-        }
-        return sectionEl;
     }
 }
