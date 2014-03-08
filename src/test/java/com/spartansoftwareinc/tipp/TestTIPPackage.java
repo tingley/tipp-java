@@ -206,8 +206,7 @@ public class TestTIPPackage {
     
     @Test
     public void testNewPackage() throws Exception {
-        PackageStore store = new InMemoryBackingStore();
-        RequestTIPP tipp = TIPPFactory.newRequestPackage(StandardTaskType.TRANSLATE_STRICT_BITEXT, store);
+        RequestTIPP tipp = new TIPPFactory().newRequestPackage(StandardTaskType.TRANSLATE_STRICT_BITEXT);
         tipp.setCreator(
             new TIPPCreator("testname", "testid", 
                            TestTIPManifest.getDate(2011, 7, 12, 20, 35, 12), 
@@ -245,11 +244,10 @@ public class TestTIPPackage {
         temp.delete();
         tipp.close();
     }
-    
+
     //@Test
     public void testNewSignedPackage() throws Exception {
-        PackageStore store = new InMemoryBackingStore();
-        RequestTIPP tipp = TIPPFactory.newRequestPackage(StandardTaskType.TRANSLATE_STRICT_BITEXT, store);
+        RequestTIPP tipp = new TIPPFactory().newRequestPackage(StandardTaskType.TRANSLATE_STRICT_BITEXT);
         tipp.setCreator(
             new TIPPCreator("testname", "testid", 
                            TestTIPManifest.getDate(2011, 7, 12, 20, 35, 12), 

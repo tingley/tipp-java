@@ -52,7 +52,6 @@ public class TIPPFactory {
      * actually was.
      * 
      * @param inputStream zipped package data
-     * @param store PackageStore to hold the expanded package data.
      * @param status a record of any errors encountered during loading
      * 
      * @return a TIPP if parsing was completed, or null if a FATAL error occurred.
@@ -91,14 +90,13 @@ public class TIPPFactory {
      * Create a new TIPP request with the specified task type and storage.
      * 
      * @param type task type for the new TIPP
-     * @param store backing store for any data added to the TIPP
      * @return TIPP
      * @throws TIPPException
      * @throws IOException
      */
-    public static RequestTIPP newRequestPackage(TIPPTaskType type, PackageStore store) 
+    public RequestTIPP newRequestPackage(TIPPTaskType type) 
             throws TIPPException, IOException {
-        RequestPackageBase tipPackage = new RequestPackageBase(store);
+        RequestPackageBase tipPackage = new RequestPackageBase(storeFactory.newPackageStore());
         tipPackage.setManifest(Manifest.newRequestManifest(tipPackage, type));
         return tipPackage;
     }
@@ -107,14 +105,13 @@ public class TIPPFactory {
      * Create a new TIPP response with the specified task type and storage.
      * 
      * @param type task type for the new TIPP
-     * @param store backing store for any data added to the TIPP
      * @return TIPP
      * @throws TIPPException
      * @throws IOException
      */
-    public static ResponseTIPP newResponsePackage(TIPPTaskType type, PackageStore store)
+    public ResponseTIPP newResponsePackage(TIPPTaskType type)
             throws TIPPException, IOException {
-        ResponsePackageBase tipPackage = new ResponsePackageBase(store);
+        ResponsePackageBase tipPackage = new ResponsePackageBase(storeFactory.newPackageStore());
         tipPackage.setManifest(Manifest.newResponseManifest(tipPackage, type));
         return tipPackage;
     }
@@ -127,16 +124,14 @@ public class TIPPFactory {
      * creator, etc) will be used to populate the InResponseTo information in the response.
      * @param requestPackage an existing request TIPP that will be used to populate the
      *        response metadata for the new TIPP.
-     * @param store backing store for any data added to the TIPP
      * @return TIPP
      * @throws TIPPException
      * @throws IOException
      */
-    public static ResponseTIPP newResponsePackage(RequestTIPP requestPackage, PackageStore store)
+    public ResponseTIPP newResponsePackage(RequestTIPP requestPackage)
             throws TIPPException, IOException {
-        ResponsePackageBase tipPackage = new ResponsePackageBase(store);
-        tipPackage.setManifest(Manifest.newResponseManifest(tipPackage, 
-                requestPackage));
+        ResponsePackageBase tipPackage = new ResponsePackageBase(storeFactory.newPackageStore());
+        tipPackage.setManifest(Manifest.newResponseManifest(tipPackage, requestPackage));
         return tipPackage;	
     }
 }
