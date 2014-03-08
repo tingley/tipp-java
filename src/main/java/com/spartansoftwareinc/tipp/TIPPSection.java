@@ -7,6 +7,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,6 +24,7 @@ public class TIPPSection {
     private boolean sorted = false;
     private int nextSequence = INITIAL_SEQUENCE;
     private BitSet sequenceNumbers = new BitSet(8);
+    private int nextAutomaticLocationIndex = 1;
 
     TIPPSection() { }
 
@@ -97,11 +99,41 @@ public class TIPPSection {
     }
     
     protected String getLocationForName(String name) {
-        return name; // no-op for now
+        if (TIPPFormattingUtil.validLocationString(this, name)) {
+            return name;
+        }
+        // Name needs normalization.  We do this by a pretty dumb mechanism - 
+        // keep the suffix/filetype, but just use incrementing integers to 
+        // normalize the paths.
+        String suffix = "";
+        int suffixStart = name.lastIndexOf('.');
+        if (suffixStart != -1) {
+            suffix = name.substring(suffixStart);
+        }
+        for (int i = nextAutomaticLocationIndex; i < Integer.MAX_VALUE; i++) {
+            String proposal = "" + i + suffix;
+            if (locationIsAvailable(proposal)) {
+                nextAutomaticLocationIndex = i + 1;
+                return proposal;
+            }
+        }
+        // This should only happen if the package already somehow contains
+        // numbered files up to MAX_VALUE
+        throw new IllegalStateException();
     }
-    
-    protected TIPPFile createFile(String name, int sequence) {
-        return new TIPPFile(name, getLocationForName(name), sequence);
+
+    protected boolean locationIsAvailable(String location) {
+        // XXX linear for now until I see if something better is needed
+        for (TIPPFile f : getResources()) {
+            if (f.getLocation().equalsIgnoreCase(location)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected TIPPFile createFile(String name, String location, int sequence) {
+        return new TIPPFile(location, name, sequence);
     }
     
     /**
@@ -111,7 +143,7 @@ public class TIPPSection {
      * @return newly created TIPPFile
      */
     public TIPPFile addFile(String name) {
-        return _addFile(createFile(name, getNextSequence()));
+        return _addFile(createFile(name, getLocationForName(name), getNextSequence()));
     }
 
     /**
@@ -124,7 +156,7 @@ public class TIPPSection {
      *         in use 
      */
     public TIPPFile addFile(String name, int sequence) {
-        return _addFile(createFile(name,  sequence));
+        return _addFile(createFile(name,  getLocationForName(name), sequence));
     }
 
     /**

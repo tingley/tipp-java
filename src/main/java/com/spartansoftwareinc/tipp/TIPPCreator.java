@@ -58,7 +58,7 @@ public class TIPPCreator {
         appendElementChildWithText(doc, 
                 creatorEl, Creator.ID, getId());
         appendElementChildWithText(doc, creatorEl, Creator.UPDATE, 
-                DateUtil.writeTIPDate(getDate()));
+                TIPPFormattingUtil.writeTIPPDate(getDate()));
         creatorEl.appendChild(getTool().toElement(doc));
         return creatorEl;
     }

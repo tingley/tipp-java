@@ -232,7 +232,7 @@ class Manifest {
     }
     
     private Date loadDate(Element dateNode) {
-        return DateUtil.parseTIPDate(getTextContent(dateNode));
+        return TIPPFormattingUtil.parseTIPPDate(getTextContent(dateNode));
     }
     
     private TIPPTool loadTool(Element toolEl) {

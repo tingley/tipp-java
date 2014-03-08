@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.xml.crypto.KeySelector;
 
@@ -37,6 +38,7 @@ import com.spartansoftwareinc.tipp.TIPPLoadStatus;
 import com.spartansoftwareinc.tipp.TIPPSection;
 import com.spartansoftwareinc.tipp.TIPPSectionType;
 import com.spartansoftwareinc.tipp.TIPPTool;
+import static com.spartansoftwareinc.tipp.TIPPFormattingUtil.*;
 
 import static org.junit.Assert.*;
 
@@ -290,6 +292,32 @@ public class TestTIPPackage {
         comparePackageParts(tipp, roundTrip);
         temp.delete();
         tipp.close();
+    }
+
+    @Test
+    public void testLocationNormalization() throws Exception {
+        addLocationNormalizationFiles(new TIPPSection(TIPPSectionType.BILINGUAL));
+    }
+    
+    @Test
+    public void testLocalizatioNormalizationInReferenceSection() throws Exception {
+        addLocationNormalizationFiles(new TIPPReferenceSection());
+    }
+
+    private void addLocationNormalizationFiles(TIPPSection section) throws Exception {
+        TIPPFile file1 = section.addFile(
+                "012345678901234567890123456789012345678901234567890123456789" +
+                "012345678901234567890123456789012345678901234567890123456789" +
+                "012345678901234567890123456789012345678901234567890123456789" +
+                "012345678901234567890123456789012345678901234567890123456789" +
+                "012345678901234567890123456789012345678901234567890123456789" +
+                "012345678901234567890123456789012345678901234567890123456789.xlf");
+        assertTrue(validLocationString(section, file1.getLocation()));
+        assertTrue(validLocationString(section, section.addFile("a\\b").getLocation()));
+        assertTrue(validLocationString(section, section.addFile("a&(b)c!!d").getLocation()));
+        assertTrue(validLocationString(section, section.addFile("a.xlf").getLocation())); // ok
+        assertTrue(validLocationString(section, section.addFile("?????_!)(**(&%@#$").getLocation()));
+        assertTrue(validLocationString(section, section.addFile("foo/./bar/../baz").getLocation()));
     }
     
     private TIPP getSamplePackage(String path, TIPPLoadStatus status) throws Exception {

@@ -9,8 +9,8 @@ public class TIPPReferenceSection extends TIPPSection {
     }
 
     @Override
-    protected TIPPReferenceFile createFile(String name, int sequence) {
-        return new TIPPReferenceFile(name, getLocationForName(name), sequence);
+    protected TIPPReferenceFile createFile(String name, String location, int sequence) {
+        return new TIPPReferenceFile(location, name, sequence);
     }
     
     @Override
