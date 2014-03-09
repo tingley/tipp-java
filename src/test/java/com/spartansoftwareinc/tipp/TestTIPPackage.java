@@ -319,6 +319,18 @@ public class TestTIPPackage {
         assertTrue(validLocationString(section, section.addFile("?????_!)(**(&%@#$").getLocation()));
         assertTrue(validLocationString(section, section.addFile("foo/./bar/../baz").getLocation()));
     }
+
+    // XTM's initial implementation uses zip64 by default in order to allow for 
+    // very large packages.  The TIPP spec does not specify whether this behavior
+    // is correct or incorrect.  This implementation allows it.
+    @Test
+    public void testZip64() throws Exception {
+        TIPPLoadStatus status = new TIPPLoadStatus();
+        TIPP tipp = getSamplePackage("data/xtm-zip64.tipp", status);
+        assertEquals(0, status.getAllErrors().size());
+        TIPPSection bilingual = tipp.getBilingualSection();
+        assertEquals(1, bilingual.getResources().size());
+    }
     
     private TIPP getSamplePackage(String path, TIPPLoadStatus status) throws Exception {
         InputStream is = 
