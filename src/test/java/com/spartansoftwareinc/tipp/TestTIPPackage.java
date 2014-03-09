@@ -400,7 +400,7 @@ public class TestTIPPackage {
                         add(new TIPPFile(
                                 "resources/290px-PeanutButter.jpg", 4));
                         add(new TIPPFile(
-                                "resources/load(1).php", 5));
+                                "resources/load_1.php", 5));
                         add(new TIPPFile(
                                 "resources/magnify-clip.png", 6));
                     }

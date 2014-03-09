@@ -61,7 +61,7 @@
         <Location>resources/290px-PeanutButter.jpg</Location>
       </File>
       <File sequence="5">
-        <Location>resources/load(1).php</Location>
+        <Location>resources/load_1.php</Location>
       </File>
       <File sequence="6">
         <Location>resources/magnify-clip.png</Location>

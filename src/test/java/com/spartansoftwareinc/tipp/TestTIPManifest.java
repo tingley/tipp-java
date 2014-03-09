@@ -149,6 +149,19 @@ public class TestTIPManifest {
     }
 
     @Test
+    public void testInvalidLocationsInManifest() throws Exception {
+        Manifest manifest = new Manifest(null);
+        TIPPLoadStatus status = new TIPPLoadStatus();
+        manifest.loadFromStream(getClass().getResourceAsStream(
+                "data/invalid_location.xml"), status);
+        TestTIPPackage.checkErrors(status, 7);
+        for (int i = 0; i < 7; i++) {
+            assertEquals(Type.INVALID_RESOURCE_LOCATION_IN_MANIFEST,
+                        status.getAllErrors().get(i).getErrorType());
+        }
+    }
+
+    @Test
     public void testInvalidSectionInManifest() throws Exception {
         Manifest manifest = new Manifest(null);
         TIPPLoadStatus status = new TIPPLoadStatus();
@@ -381,7 +394,7 @@ public class TestTIPManifest {
                         add(new TIPPFile(
                                 "resources/290px-PeanutButter.jpg", 4));
                         add(new TIPPFile(
-                                "resources/load(1).php", 5));
+                                "resources/load_1.php", 5));
                         add(new TIPPFile(
                                 "resources/magnify-clip.png", 6));
                     }

@@ -278,7 +278,8 @@ class Manifest {
             TIPPReferenceSection refSection = new TIPPReferenceSection();
             NodeList children = section.getElementsByTagName(REFERENCE_FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
-                TIPPReferenceFile file = loadReferenceFile((Element)children.item(i), status);
+                TIPPReferenceFile file = loadReferenceFile((Element)children.item(i),
+                                            refSection, status);
                 addFileToSection(refSection, file, status);
             }
             return refSection;
@@ -288,7 +289,7 @@ class Manifest {
             objSection.setPackage(tipPackage);
             NodeList children = section.getElementsByTagName(FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
-                TIPPFile file = loadFile((Element)children.item(i), status);
+                TIPPFile file = loadFile((Element)children.item(i), objSection, status);
                 addFileToSection(objSection, file, status);
             }
             return objSection;
@@ -311,9 +312,9 @@ class Manifest {
     }
 
     private TIPPReferenceFile loadReferenceFile(Element file,
-                            TIPPLoadStatus status) {
+                            TIPPSection section, TIPPLoadStatus status) {
         TIPPReferenceFile object = new TIPPReferenceFile();
-        loadFileResource(object, file, status);
+        loadFileResource(object, file, section, status);
         if (file.hasAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE)) {
             object.setLanguageChoice( 
                     TIPPReferenceFile.LanguageChoice.valueOf(
@@ -322,14 +323,14 @@ class Manifest {
         return object;
     }
     
-    private TIPPFile loadFile(Element file, TIPPLoadStatus status) {
+    private TIPPFile loadFile(Element file, TIPPSection section, TIPPLoadStatus status) {
         TIPPFile object = new TIPPFile();
-        loadFileResource(object, file, status);
+        loadFileResource(object, file, section, status);
         return object;
     }
     
     private void loadFileResource(TIPPFile object, Element file,
-                                TIPPLoadStatus status) {  
+                                  TIPPSection section, TIPPLoadStatus status) {  
         object.setPackage(tipPackage);
         String rawSequence = file.getAttribute(ObjectFile.ATTR_SEQUENCE);
         try {
@@ -339,7 +340,12 @@ class Manifest {
         catch (NumberFormatException e) {
             // This should be caught by validation
         }
-        object.setLocation(getChildTextByName(file, ObjectFile.LOCATION));
+        String location = getChildTextByName(file, ObjectFile.LOCATION);
+        object.setLocation(location);
+        if (!TIPPFormattingUtil.validLocationString(section, location)) {
+            status.addError(Type.INVALID_RESOURCE_LOCATION_IN_MANIFEST,
+                            "Invalid location: " + location);
+        }
         String name = getChildTextByName(file, ObjectFile.NAME);
         object.setName((name == null) ? object.getLocation() : name);
     }
