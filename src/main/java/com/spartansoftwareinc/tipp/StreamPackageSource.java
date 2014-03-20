@@ -12,7 +12,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 class StreamPackageSource extends PackageSource {
 
     private InputStream inputStream;
-    private TIPPLoadStatus status;
+    private TIPPErrorHandler errorHandler;
 
     StreamPackageSource(InputStream inputStream) {
         this.inputStream = inputStream;
@@ -40,8 +40,8 @@ class StreamPackageSource extends PackageSource {
                     copyPayloadToStore(zis, store);
                 }
                 else {
-                    status.addError(TIPPError.Type.UNEXPECTED_PACKAGE_CONTENTS, 
-                            "Unexpected package contents: " + name);
+                    errorHandler.reportError(TIPPErrorType.UNEXPECTED_PACKAGE_CONTENTS, 
+                            "Unexpected package contents: " + name, null);
                 }
             }
             zis.close();
@@ -52,7 +52,7 @@ class StreamPackageSource extends PackageSource {
             // odd behavior of the Java zip library.  For example, if the
             // ZIP file is not actually a ZIP, no error is thrown!  The stream
             // will just produce zero entries instead.
-            status.addError(TIPPError.Type.INVALID_PACKAGE_ZIP,
+            errorHandler.reportError(TIPPErrorType.INVALID_PACKAGE_ZIP,
                             "Could not read package zip", e);
             throw new ReportedException(e);
         }
@@ -81,8 +81,8 @@ class StreamPackageSource extends PackageSource {
     }
     
     @Override
-    void open(TIPPLoadStatus status) throws IOException {
-        this.status = status;
+    void open(TIPPErrorHandler errorHandler) throws IOException {
+        this.errorHandler = errorHandler;
     }
 
 

@@ -11,10 +11,10 @@ class PackageReader {
         this.store = store;
     }
 
-    PackageBase load(TIPPLoadStatus status, KeySelector keySelector) throws IOException {
+    PackageBase load(TIPPErrorHandler errorHandler, KeySelector keySelector) throws IOException {
         try {
             Manifest manifest = new Manifest(null);
-            if (!manifest.loadFromStream(store.getManifestData(), status, keySelector, 
+            if (!manifest.loadFromStream(store.getManifestData(), errorHandler, keySelector, 
                                          store.getRawPayloadData())) {
                 return null;
             }
@@ -39,11 +39,12 @@ class PackageReader {
                 }
             }
             // Verify the manifest against the package contents
-            new PayloadValidator().validate(manifest, store, status);
+            new PayloadValidator().validate(manifest, store, errorHandler);
             return tipp;
         }
         catch (FileNotFoundException e) {
-            status.addError(TIPPError.Type.MISSING_MANIFEST);
+            errorHandler.reportError(TIPPErrorType.MISSING_MANIFEST, 
+                               "Package contained no manifest", null);
             throw new ReportedException(e);
         }
     }

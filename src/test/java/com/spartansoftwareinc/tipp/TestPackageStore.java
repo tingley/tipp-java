@@ -8,13 +8,6 @@ import java.io.OutputStream;
 
 import org.junit.Test;
 
-import com.spartansoftwareinc.tipp.InMemoryBackingStore;
-import com.spartansoftwareinc.tipp.PackageStore;
-import com.spartansoftwareinc.tipp.TIPPErrorSeverity;
-import com.spartansoftwareinc.tipp.TIPPFactory;
-import com.spartansoftwareinc.tipp.TIPPLoadStatus;
-import com.spartansoftwareinc.tipp.TempFileBackingStore;
-
 import static org.junit.Assert.*;
 
 public class TestPackageStore {
@@ -23,9 +16,9 @@ public class TestPackageStore {
     public void test() throws Exception {
         InputStream is =  
                 getClass().getResourceAsStream("data/test_package.zip");
-        TIPPLoadStatus status = new TIPPLoadStatus();
-        new TIPPFactory().openFromStream(is, status);
-        assertEquals(TIPPErrorSeverity.NONE, status.getSeverity());
+        CollectingErrorHandler status = new CollectingErrorHandler();
+        TestUtils.createFactory(status).openFromStream(is);
+        assertEquals(TIPPErrorSeverity.NONE, status.getMaxSeverity());
     }
     
     @Test

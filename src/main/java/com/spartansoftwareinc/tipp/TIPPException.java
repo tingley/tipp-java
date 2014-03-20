@@ -3,7 +3,7 @@ package com.spartansoftwareinc.tipp;
 /**
  * Base class for all exceptions generated within TIP.
  */
-public class TIPPException extends Exception {
+public class TIPPException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     TIPPException(String message) {

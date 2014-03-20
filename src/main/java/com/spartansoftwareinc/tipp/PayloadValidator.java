@@ -3,6 +3,9 @@ package com.spartansoftwareinc.tipp;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.spartansoftwareinc.tipp.TIPPErrorType;
+import static com.spartansoftwareinc.tipp.TIPPErrorType.*;
+
 /**
  * Validates a package payload against its manifest.
  */
@@ -17,8 +20,8 @@ class PayloadValidator {
      * @param status
      * @return true if successful, false if an error was found
      */
-    boolean validate(Manifest manifest, PackageStore store, TIPPLoadStatus status) {
-        int originalErrorCount = status.getAllErrors().size();
+    boolean validate(Manifest manifest, PackageStore store, TIPPErrorHandler errorHandler) {
+        CollectingErrorHandler validationErrors = new CollectingErrorHandler();
         Set<String> objectPaths = store.getObjectFilePaths();
         Set<String> pathsInManifest = new HashSet<String>();
         for (TIPPSection section : manifest.getSections()) {
@@ -28,12 +31,12 @@ class PayloadValidator {
                 if (obj instanceof TIPPFile) {
                     String expectedPath = ((TIPPFile)obj).getCanonicalObjectPath();
                     if (pathsInManifest.contains(expectedPath)) {
-                        status.addError(TIPPError.Type.DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST,
-                                "Duplicate resource in manifest: " + expectedPath);
+                        validationErrors.reportError(DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST,
+                                "Duplicate resource in manifest: " + expectedPath, null);
                     }
                     if (!objectPaths.contains(expectedPath)) {
-                        status.addError(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, 
-                                "Missing resource: " + expectedPath);
+                        validationErrors.reportError(MISSING_PAYLOAD_RESOURCE, 
+                                "Missing resource: " + expectedPath, null);
                     }
                     pathsInManifest.add(expectedPath);
                 }
@@ -42,10 +45,14 @@ class PayloadValidator {
         // Now check in the other direction
         for (String objectPath : objectPaths) {
             if (!pathsInManifest.contains(objectPath)) {
-                status.addError(TIPPError.Type.UNEXPECTED_PAYLOAD_RESOURCE, 
-                                "Unexpected package resource: " + objectPath);
+                validationErrors.reportError(TIPPErrorType.UNEXPECTED_PAYLOAD_RESOURCE, 
+                                "Unexpected package resource: " + objectPath, null);
             }
         }
-        return (originalErrorCount == status.getAllErrors().size());
+        for (TIPPError e : validationErrors.getErrors()) {
+            errorHandler.reportError(e.getErrorType(), e.getMessage(), e.getException());
+        }
+        // Add all errors to the regular error.
+        return validationErrors.getErrors().size() == 0;
     }
 }

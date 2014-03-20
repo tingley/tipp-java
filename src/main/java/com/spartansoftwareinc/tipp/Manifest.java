@@ -33,7 +33,7 @@ import org.w3c.dom.ls.LSResourceResolver;
 import com.spartansoftwareinc.tipp.TIPPConstants.ContributorTool;
 import com.spartansoftwareinc.tipp.TIPPConstants.Creator;
 import com.spartansoftwareinc.tipp.TIPPConstants.ObjectFile;
-import com.spartansoftwareinc.tipp.TIPPError.Type;
+import static com.spartansoftwareinc.tipp.TIPPErrorType.*;
 
 import javax.xml.crypto.KeySelector;
 
@@ -57,6 +57,7 @@ class Manifest {
     private String packageId;
     private TIPPTask task; // Either request or response
     private TIPPCreator creator = new TIPPCreator();
+    private TIPPErrorHandler errorHandler;
     
     private EnumMap<TIPPSectionType, TIPPSection> sections = 
             new EnumMap<TIPPSectionType, TIPPSection>(TIPPSectionType.class);
@@ -118,34 +119,36 @@ class Manifest {
     TIPPTaskType getTaskType() {
     	return taskType;
     }
-    
-    boolean loadFromStream(InputStream manifestStream, TIPPLoadStatus status)
+
+    boolean loadFromStream(InputStream manifestStream, TIPPErrorHandler errorHandler)
             throws IOException {
-        return loadFromStream(manifestStream, status, null, null);
+        return loadFromStream(manifestStream, errorHandler, null, null);
     }
-    
+
     // XXX This should blow away any existing settings 
-    boolean loadFromStream(InputStream manifestStream, TIPPLoadStatus status,
+    boolean loadFromStream(InputStream manifestStream, TIPPErrorHandler errorHandler,
                            KeySelector keySelector, InputStream payloadStream) 
                 throws IOException {
         if (manifestStream == null) {
-            status.addError(TIPPError.Type.MISSING_MANIFEST);
+            errorHandler.reportError(TIPPErrorType.MISSING_MANIFEST, 
+                    "Package contained no manifest", null);
             return false;
         }
+        this.errorHandler = errorHandler;
     	try {
-	        Document document = parse(manifestStream, status);
+	        Document document = parse(manifestStream);
 	        if (document == null) {
 	            return false;
 	        }
 	        // Validate the schema
-	        if (!validate(document, status)) {
+	        if (!validate(document)) {
 	            return false;
 	        }
 	        // Validate the XML Signature if we are given a key
-            if (!validateSignature(document, status, keySelector, payloadStream)) {
+            if (!validateSignature(document, keySelector, payloadStream)) {
                 return false;
             }
-	        loadManifest(document, status);
+	        loadManifest(document);
 	        return true;
     	}
     	catch (ParserConfigurationException e) {
@@ -153,22 +156,21 @@ class Manifest {
     	}
     }    
     
-    private void loadManifest(Document document, TIPPLoadStatus status) {
+    private void loadManifest(Document document) {
         Element manifest = getFirstChildElement(document);
         loadDescriptor(getFirstChildByName(manifest, GLOBAL_DESCRIPTOR));
         // Either load the request or the response, depending on which is
         // present
         task = loadTaskRequestOrResponse(manifest);
-        loadPackageObjects(getFirstChildByName(manifest, PACKAGE_OBJECTS), status);
+        loadPackageObjects(getFirstChildByName(manifest, PACKAGE_OBJECTS));
         
         // Perform additional validation that isn't covered by the schema
         TIPPTaskType taskType = getTaskType();
         if (taskType != null) {
             for (TIPPSection section : getSections()) {
                 if (!taskType.getSupportedSectionTypes().contains(section.getType())) {
-                    status.addError(TIPPError.Type.INVALID_SECTION_FOR_TASK, 
-                            "Invalid section for task type: " + 
-                                section.getType());
+                    errorHandler.reportError(TIPPErrorType.INVALID_SECTION_FOR_TASK, 
+                            "Invalid section for task type: " + section.getType(), null);
                 }
             }
         }
@@ -243,7 +245,7 @@ class Manifest {
         return tool;
     }
     
-    private void loadPackageObjects(Element parent, TIPPLoadStatus status) {
+    private void loadPackageObjects(Element parent) {
         NodeList children = parent.getChildNodes();
         // parse all the sections
         for (int i = 0; i < children.getLength(); i++) {
@@ -251,36 +253,35 @@ class Manifest {
                 continue;
             }
             TIPPSection section = 
-                loadPackageObjectSection((Element)children.item(i), status);
+                loadPackageObjectSection((Element)children.item(i), errorHandler);
             if (section == null) {
                 continue;
             }
             // Don't allow duplicate sections
             if (sections.containsKey(section.getType())) {
-                status.addError(TIPPError.Type.DUPLICATE_SECTION_IN_MANIFEST, 
-                        "Duplicate section: " + section.getType());
+                errorHandler.reportError(TIPPErrorType.DUPLICATE_SECTION_IN_MANIFEST, 
+                        "Duplicate section: " + section.getType(), null);
                 continue;
             }
             sections.put(section.getType(), section);
         }
     }
-    
+
     private TIPPSection loadPackageObjectSection(Element section,
-            TIPPLoadStatus status) {
+            TIPPErrorHandler errorHandler) {
         TIPPSectionType type = 
                 TIPPSectionType.byElementName(section.getNodeName());
         if (type == null) {
-            return null; // Should never happen
+            throw new IllegalStateException("Invalid section element"); // Should never happen
         }
-        String sectionName = section.getAttribute(ATTR_SECTION_NAME);
         // XXX Too much duplicated code in these two clauses, needs a refactor
         if (type.equals(TIPPSectionType.REFERENCE)) {
             TIPPReferenceSection refSection = new TIPPReferenceSection();
             NodeList children = section.getElementsByTagName(REFERENCE_FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
                 TIPPReferenceFile file = loadReferenceFile((Element)children.item(i),
-                                            refSection, status);
-                addFileToSection(refSection, file, status);
+                                            refSection);
+                addFileToSection(refSection, file);
             }
             return refSection;
         }
@@ -289,22 +290,21 @@ class Manifest {
             objSection.setPackage(tipPackage);
             NodeList children = section.getElementsByTagName(FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
-                TIPPFile file = loadFile((Element)children.item(i), objSection, status);
-                addFileToSection(objSection, file, status);
+                TIPPFile file = loadFile((Element)children.item(i), objSection);
+                addFileToSection(objSection, file);
             }
             return objSection;
         }
     }
 
-    private void addFileToSection(TIPPSection section, TIPPFile file,
-                                  TIPPLoadStatus status) {
+    private void addFileToSection(TIPPSection section, TIPPFile file) {
         // For now, we will require sequence numbers to be present.  The spec
         // implies this, but the schema doesn't require it!  However, that issue
         // is caught elsewhere, so this code just needs to not crash.
         if (file.sequenceIsSet() && section.checkSequence(file.getSequence())) {
-            status.addError(Type.DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST,
+            errorHandler.reportError(DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST,
                     "Duplicate sequence number in " + section.getType().getElementName() +
-                    ": " + file.getSequence());
+                    ": " + file.getSequence(), null);
         }
         else {
             section.addFile(file);
@@ -312,9 +312,9 @@ class Manifest {
     }
 
     private TIPPReferenceFile loadReferenceFile(Element file,
-                            TIPPSection section, TIPPLoadStatus status) {
+                            TIPPSection section) {
         TIPPReferenceFile object = new TIPPReferenceFile();
-        loadFileResource(object, file, section, status);
+        loadFileResource(object, file, section);
         if (file.hasAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE)) {
             object.setLanguageChoice( 
                     TIPPReferenceFile.LanguageChoice.valueOf(
@@ -323,14 +323,14 @@ class Manifest {
         return object;
     }
     
-    private TIPPFile loadFile(Element file, TIPPSection section, TIPPLoadStatus status) {
+    private TIPPFile loadFile(Element file, TIPPSection section) {
         TIPPFile object = new TIPPFile();
-        loadFileResource(object, file, section, status);
+        loadFileResource(object, file, section);
         return object;
     }
     
     private void loadFileResource(TIPPFile object, Element file,
-                                  TIPPSection section, TIPPLoadStatus status) {  
+                                  TIPPSection section) {  
         object.setPackage(tipPackage);
         String rawSequence = file.getAttribute(ObjectFile.ATTR_SEQUENCE);
         try {
@@ -343,15 +343,14 @@ class Manifest {
         String location = getChildTextByName(file, ObjectFile.LOCATION);
         object.setLocation(location);
         if (!TIPPFormattingUtil.validLocationString(section, location)) {
-            status.addError(Type.INVALID_RESOURCE_LOCATION_IN_MANIFEST,
-                            "Invalid location: " + location);
+            errorHandler.reportError(INVALID_RESOURCE_LOCATION_IN_MANIFEST,
+                            "Invalid location: " + location, null);
         }
         String name = getChildTextByName(file, ObjectFile.NAME);
         object.setName((name == null) ? object.getLocation() : name);
     }
     
-    Document parse(InputStream is, TIPPLoadStatus status) throws ParserConfigurationException, 
-                                    IOException {
+    Document parse(InputStream is) throws ParserConfigurationException, IOException {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
@@ -359,7 +358,7 @@ class Manifest {
             return builder.parse(is);
         }
         catch (Exception e) {
-            status.addError(TIPPError.Type.CORRUPT_MANIFEST, "Could not parse manifest", e);
+            errorHandler.reportError(TIPPErrorType.CORRUPT_MANIFEST, "Could not parse manifest", e);
             return null;
         }
         finally {
@@ -367,7 +366,7 @@ class Manifest {
         }
     }
     
-    boolean validate(final Document dom, TIPPLoadStatus status) {
+    boolean validate(final Document dom) {
         try {
             InputStream is = 
                 getClass().getResourceAsStream("/TIPPManifest-1_5.xsd");
@@ -400,19 +399,19 @@ class Manifest {
                 }
             });
             Schema schema = factory.newSchema(new StreamSource(is));
-            // need an error handler
+            // need an errorHandler.reportError handler
             Validator validator = schema.newValidator();
             validator.validate(new DOMSource(dom));
             is.close();
             return true;
         }
         catch (Exception e) {
-            status.addError(TIPPError.Type.INVALID_MANIFEST, "Invalid manifest", e);
+            errorHandler.reportError(TIPPErrorType.INVALID_MANIFEST, "Invalid manifest", e);
             return false;
         }
     }
 
-    boolean validateSignature(final Document doc, TIPPLoadStatus status,
+    boolean validateSignature(final Document doc,
                            KeySelector keySelector,
                            InputStream payloadStream) {
         ManifestSigner signer = new ManifestSigner();
@@ -420,14 +419,16 @@ class Manifest {
             if (keySelector != null) {
                 if (!signer.validateSignature(doc, keySelector,
                             payloadStream)) {
-                    status.addError(Type.INVALID_SIGNATURE);
+                    errorHandler.reportError(INVALID_SIGNATURE, 
+                            "Invalid digital signature", null);
                     return false;
                 }
             }
             else {
                 // The manifest has a signature, but we're not able to 
                 // validate it because no key was provided by the user.
-                status.addError(Type.UNABLE_TO_VERIFY_SIGNATURE);
+                errorHandler.reportError(UNABLE_TO_VERIFY_SIGNATURE,
+                        "No key provided to verify digital signature", null);
                 return false;
             }
         }
@@ -521,4 +522,5 @@ class Manifest {
                 + ", task=" + getTask() + ", sections=" + getSections() 
                 + ")";
     }
+
 }

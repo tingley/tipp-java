@@ -6,7 +6,7 @@ abstract class PackageSource {
     
     static final String SEPARATOR = "/";
     
-    abstract void open(TIPPLoadStatus status) throws IOException;
+    abstract void open(TIPPErrorHandler errorHandler) throws IOException;
     
     abstract boolean close() throws IOException;
 

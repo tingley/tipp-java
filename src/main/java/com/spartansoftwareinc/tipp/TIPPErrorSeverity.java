@@ -3,12 +3,12 @@ package com.spartansoftwareinc.tipp;
 /**
  * Severity for an error encountered while loading a TIPP.
  */
-public enum TIPPErrorSeverity {
-
+enum TIPPErrorSeverity {
     /**
-     * NONE is a sentinel severity that is only used as the return
-     * value from TIPPLoadStatus.getSeverity().
-     */
+     * NONE is a sentinel severity that is only used by methods
+     * that measure the severity of a (potentially empty) set of
+     * errors, such as {@link CollectingErrorHandler#getMaxSeverity}.
+    */
     NONE,
 
     /**

@@ -16,15 +16,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import javax.xml.crypto.KeySelector;
 
 import org.junit.*;
 
 import com.spartansoftwareinc.tipp.FileUtil;
-import com.spartansoftwareinc.tipp.InMemoryBackingStore;
-import com.spartansoftwareinc.tipp.PackageStore;
 import com.spartansoftwareinc.tipp.RequestTIPP;
 import com.spartansoftwareinc.tipp.ResponseTIPP;
 import com.spartansoftwareinc.tipp.StandardTaskType;
@@ -34,30 +31,31 @@ import com.spartansoftwareinc.tipp.TIPPError;
 import com.spartansoftwareinc.tipp.TIPPErrorSeverity;
 import com.spartansoftwareinc.tipp.TIPPFactory;
 import com.spartansoftwareinc.tipp.TIPPFile;
-import com.spartansoftwareinc.tipp.TIPPLoadStatus;
+import com.spartansoftwareinc.tipp.CollectingErrorHandler;
 import com.spartansoftwareinc.tipp.TIPPSection;
 import com.spartansoftwareinc.tipp.TIPPSectionType;
 import com.spartansoftwareinc.tipp.TIPPTool;
 import static com.spartansoftwareinc.tipp.TIPPFormattingUtil.*;
+import static com.spartansoftwareinc.tipp.TestUtils.*;
 
 import static org.junit.Assert.*;
 
 public class TestTIPPackage {
     
-    public static void checkErrors(TIPPLoadStatus status, int expectedErrorCount) {
-        if (expectedErrorCount != status.getAllErrors().size()) {
+    public static void checkErrors(CollectingErrorHandler status, int expectedErrorCount) {
+        if (expectedErrorCount != status.getErrors().size()) {
             System.out.println("Expected " + expectedErrorCount + 
-                    " errors but found " + status.getAllErrors().size());
-            for (TIPPError error : status.getAllErrors()) {
+                    " errors but found " + status.getErrors().size());
+            for (TIPPError error : status.getErrors()) {
                 System.out.println("> " + error);
             }
         }
-        assertEquals(expectedErrorCount, status.getAllErrors().size());
+        assertEquals(expectedErrorCount, status.getErrors().size());
     }
     
     @Test
     public void testPackageLoad() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tip = getSamplePackage("data/test_package.zip", status);
         checkErrors(status, 0);
         verifyRequestPackage(tip);
@@ -82,100 +80,100 @@ public class TestTIPPackage {
     }
     
     private void testOpenToStore(PackageStoreFactory strategy) throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         InputStream is = getClass().getResourceAsStream("data/test_package.zip");
-        TIPPFactory factory = new TIPPFactory();
-        factory.setPackageStoreFactory(strategy);;
-        TIPP tipp = factory.openFromStream(is, status);
+        TIPPFactory factory = createFactory(status);
+        factory.setPackageStoreFactory(strategy);
+        TIPP tipp = factory.openFromStream(is);
         checkErrors(status, 0);
         verifyRequestPackage(tipp);
     }
     
     @Test
     public void testVerifyMissingManifest() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tipp = getSamplePackage("data/missing_manifest.zip", status);
         assertNull(tipp);
         checkErrors(status, 1);
-        assertEquals(TIPPErrorSeverity.FATAL, status.getSeverity());
-        TIPPError error = status.getAllErrors().get(0);
-        assertEquals(TIPPError.Type.MISSING_MANIFEST, error.getErrorType());
+        assertEquals(TIPPErrorSeverity.FATAL, status.getMaxSeverity());
+        TIPPError error = status.getErrors().get(0);
+        assertEquals(TIPPErrorType.MISSING_MANIFEST, error.getErrorType());
     }
     
     @Test
     public void testVerifyCorruptManifest() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tipp = getSamplePackage("data/corrupt_manifest.zip", status);
         assertNull(tipp);
         checkErrors(status, 1);
-        assertEquals(TIPPErrorSeverity.FATAL, status.getSeverity());
-        assertEquals(TIPPError.Type.CORRUPT_MANIFEST, status.getAllErrors().get(0).getErrorType());
+        assertEquals(TIPPErrorSeverity.FATAL, status.getMaxSeverity());
+        assertEquals(TIPPErrorType.CORRUPT_MANIFEST, status.getErrors().get(0).getErrorType());
     }
     
     @Test
     public void testVerifyMissingPayload() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tipp = getSamplePackage("data/missing_payload.zip", status);
         // manifest is intact, so we should get a TIPP object
         assertNotNull(tipp);
         checkErrors(status, 7);
-        assertEquals(TIPPErrorSeverity.ERROR, status.getSeverity());
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(0).getErrorType());
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(1).getErrorType());
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(2).getErrorType());
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(3).getErrorType());
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(4).getErrorType());
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(5).getErrorType());
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(6).getErrorType());
+        assertEquals(TIPPErrorSeverity.ERROR, status.getMaxSeverity());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(0).getErrorType());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(1).getErrorType());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(2).getErrorType());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(3).getErrorType());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(4).getErrorType());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(5).getErrorType());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(6).getErrorType());
     }
     
     @Test
     public void testVerifyCorruptPayloadZip() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tipp = getSamplePackage("data/corrupt_payload_zip.zip", status);
         assertNotNull(tipp);
         checkErrors(status, 7);
-        assertEquals(TIPPErrorSeverity.ERROR, status.getSeverity());
-        for (TIPPError error : status.getAllErrors()) {
-            assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, error.getErrorType());
+        assertEquals(TIPPErrorSeverity.ERROR, status.getMaxSeverity());
+        for (TIPPError error : status.getErrors()) {
+            assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, error.getErrorType());
         }
     }
 
     @Test
     public void testManifestPayloadMismatch() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tipp = getSamplePackage("data/manifest_payload_mismatch.zip", status);
         assertNotNull(tipp);
         checkErrors(status, 2);
-        assertEquals(TIPPError.Type.MISSING_PAYLOAD_RESOURCE, status.getAllErrors().get(0).getErrorType());
-        assertEquals(TIPPError.Type.UNEXPECTED_PAYLOAD_RESOURCE, status.getAllErrors().get(1).getErrorType());
+        assertEquals(TIPPErrorType.MISSING_PAYLOAD_RESOURCE, status.getErrors().get(0).getErrorType());
+        assertEquals(TIPPErrorType.UNEXPECTED_PAYLOAD_RESOURCE, status.getErrors().get(1).getErrorType());
     }
     
     @Test
     public void testVerifyCorruptPackageZip() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tipp = getSamplePackage("data/corrupt_package_zip.zip", status);
         assertNull(tipp);
-        assertEquals(1, status.getAllErrors().size());
-        assertEquals(TIPPErrorSeverity.FATAL, status.getSeverity());
-        TIPPError error = status.getAllErrors().get(0);
-        assertEquals(TIPPError.Type.MISSING_MANIFEST, error.getErrorType());
+        assertEquals(1, status.getErrors().size());
+        assertEquals(TIPPErrorSeverity.FATAL, status.getMaxSeverity());
+        TIPPError error = status.getErrors().get(0);
+        assertEquals(TIPPErrorType.MISSING_MANIFEST, error.getErrorType());
     }
     
     @Test
     public void testPackageSave() throws Exception {
         // Load the package, save it out to a zip file, read it back.
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tip = getSamplePackage("data/test_package.zip", status);
-        assertEquals(0, status.getAllErrors().size());
+        assertEquals(0, status.getErrors().size());
         File temp = File.createTempFile("tiptest", ".zip");
         OutputStream os = new BufferedOutputStream(new FileOutputStream(temp));
         tip.saveToStream(os);
         os.close();
-        status = new TIPPLoadStatus();
-        TIPP roundtrip  = new TIPPFactory().openFromStream(
-                new BufferedInputStream(new FileInputStream(temp)), status);
-        assertEquals(0, status.getAllErrors().size());
+        status = new CollectingErrorHandler();
+        TIPP roundtrip  = createFactory(status).openFromStream(
+                new BufferedInputStream(new FileInputStream(temp)));
+        assertEquals(0, status.getErrors().size());
         verifyRequestPackage(roundtrip);
         comparePackageParts(tip, roundtrip);
         temp.delete();
@@ -185,7 +183,7 @@ public class TestTIPPackage {
     
     @Test
     public void testResponsePackage() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tip = getSamplePackage("data/test_response_package.zip", status);
         checkErrors(status, 0);
         assertFalse(tip.isRequest());
@@ -194,10 +192,10 @@ public class TestTIPPackage {
         OutputStream os = new BufferedOutputStream(new FileOutputStream(temp));
         tip.saveToStream(os);
         os.close();
-        status = new TIPPLoadStatus();
-        TIPP roundtrip = new TIPPFactory().openFromStream(
-                new BufferedInputStream(new FileInputStream(temp)), status);
-        assertEquals(0, status.getAllErrors().size());
+        status = new CollectingErrorHandler();
+        TIPP roundtrip = createFactory(status).openFromStream(
+                new BufferedInputStream(new FileInputStream(temp)));
+        assertEquals(0, status.getErrors().size());
         assertFalse(roundtrip.isRequest());
         verifyResponsePackage((ResponseTIPP)roundtrip);
         comparePackageParts(tip, roundtrip);
@@ -232,10 +230,10 @@ public class TestTIPPackage {
         OutputStream os = new FileOutputStream(temp);
         tipp.saveToStream(os);
         os.close();
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP roundTrip = 
-            new TIPPFactory().openFromStream(new FileInputStream(temp), status);
-        assertEquals(0, status.getAllErrors().size());
+                createFactory(status).openFromStream(new FileInputStream(temp));
+        assertEquals(0, status.getErrors().size());
         assertNotNull(roundTrip);
         assertEquals(tipp.getPackageId(), roundTrip.getPackageId());
         assertEquals(tipp.getCreator(), roundTrip.getCreator());
@@ -278,11 +276,11 @@ public class TestTIPPackage {
         tipp.saveToStream(os, kp);
         os.close();
         System.out.println("Wrote package to " + temp);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP roundTrip = 
-            new TIPPFactory().openFromStream(new FileInputStream(temp), 
-                    status, KeySelector.singletonKeySelector(kp.getPublic()));
-        TestUtils.expectLoadStatus(status, 0, TIPPErrorSeverity.NONE);
+            createFactory(status).openFromStream(new FileInputStream(temp), 
+                    KeySelector.singletonKeySelector(kp.getPublic()));
+        expectLoadStatus(status, 0, TIPPErrorSeverity.NONE);
         assertNotNull(roundTrip);
         assertEquals(tipp.getPackageId(), roundTrip.getPackageId());
         assertEquals(tipp.getCreator(), roundTrip.getCreator());
@@ -325,19 +323,19 @@ public class TestTIPPackage {
     // is correct or incorrect.  This implementation allows it.
     @Test
     public void testZip64() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP tipp = getSamplePackage("data/xtm-zip64.tipp", status);
-        assertEquals(0, status.getAllErrors().size());
+        assertEquals(0, status.getErrors().size());
         TIPPSection bilingual = tipp.getBilingualSection();
         assertEquals(1, bilingual.getResources().size());
     }
     
-    private TIPP getSamplePackage(String path, TIPPLoadStatus status) throws Exception {
+    private TIPP getSamplePackage(String path, CollectingErrorHandler status) throws Exception {
         InputStream is = 
             getClass().getResourceAsStream(path);
-        return new TIPPFactory().openFromStream(is, status);
+        return createFactory(status).openFromStream(is);
     }
-    
+
     private void comparePackageParts(TIPP p1, TIPP p2) throws Exception {
         Collection<TIPPSection> s1 = p1.getSections();
         Collection<TIPPSection> s2 = p2.getSections();

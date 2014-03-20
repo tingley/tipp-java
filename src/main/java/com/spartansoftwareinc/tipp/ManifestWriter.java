@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyPair;
 
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -42,9 +41,9 @@ class ManifestWriter {
             if (keyPair != null) {
                 new ManifestSigner().sign(document, getPayload(), keyPair);
             }
-            TIPPLoadStatus status = new TIPPLoadStatus();
-            //validate(document, status);
-            if (status.getSeverity() != TIPPErrorSeverity.NONE) {
+            CollectingErrorHandler errorHandler = new CollectingErrorHandler();
+            //validate(document, errorHandler);
+            if (errorHandler.getErrors().size() > 0) {
                 // XXX What to do with the errors?
                 throw new TIPPException("Saved manifest was invalid");
             }

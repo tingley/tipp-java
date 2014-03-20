@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import com.spartansoftwareinc.tipp.CollectingErrorHandler;
 import com.spartansoftwareinc.tipp.TIPP;
 import com.spartansoftwareinc.tipp.TIPPError;
 import com.spartansoftwareinc.tipp.TIPPFactory;
-import com.spartansoftwareinc.tipp.TIPPLoadStatus;
 
 public class TIPExplode {
 
@@ -30,10 +30,12 @@ public class TIPExplode {
         File tipFile = verifyPackageFile(args[0]);
         File targetDir = prepareTargetDirectory(args[1]);
         InputStream is = new BufferedInputStream(new FileInputStream(tipFile));
-        TIPPLoadStatus status = new TIPPLoadStatus();
-        TIPP tip = new TIPPFactory().openFromStream(is, status);
+        TIPPFactory factory = new TIPPFactory();
+        CollectingErrorHandler errorHandler = new CollectingErrorHandler();
+        factory.setErrorHandler(errorHandler);
+        TIPP tip = new TIPPFactory().openFromStream(is);
         is.close();
-        List<TIPPError> errors = status.getAllErrors();
+        List<TIPPError> errors = errorHandler.getErrors();
         if (errors.size() > 0) {
             System.out.println("Errors were encountered:");
             for (TIPPError e : errors) {

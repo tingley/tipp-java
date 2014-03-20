@@ -43,7 +43,7 @@ public class TIPPFile extends TIPPResource {
     }
 
     @Override
-    public BufferedOutputStream getOutputStream() throws IOException, TIPPException {
+    public BufferedOutputStream getOutputStream() throws IOException {
         return getPackage().getPackageObjectOutputStream(getCanonicalObjectPath());
     }
 

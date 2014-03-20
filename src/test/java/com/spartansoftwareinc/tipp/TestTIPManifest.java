@@ -2,27 +2,7 @@ package com.spartansoftwareinc.tipp;
 
 import org.junit.*;
 
-import com.spartansoftwareinc.tipp.InMemoryBackingStore;
-import com.spartansoftwareinc.tipp.Manifest;
-import com.spartansoftwareinc.tipp.ManifestWriter;
-import com.spartansoftwareinc.tipp.PayloadValidator;
-import com.spartansoftwareinc.tipp.ReportedException;
-import com.spartansoftwareinc.tipp.StandardTaskType;
-import com.spartansoftwareinc.tipp.TIPP;
-import com.spartansoftwareinc.tipp.TIPPCreator;
-import com.spartansoftwareinc.tipp.TIPPError;
-import com.spartansoftwareinc.tipp.TIPPErrorSeverity;
-import com.spartansoftwareinc.tipp.TIPPFactory;
-import com.spartansoftwareinc.tipp.TIPPFile;
-import com.spartansoftwareinc.tipp.TIPPLoadStatus;
-import com.spartansoftwareinc.tipp.TIPPReferenceSection;
-import com.spartansoftwareinc.tipp.TIPPResponseCode;
-import com.spartansoftwareinc.tipp.TIPPSection;
-import com.spartansoftwareinc.tipp.TIPPSectionType;
-import com.spartansoftwareinc.tipp.TIPPTaskRequest;
-import com.spartansoftwareinc.tipp.TIPPTaskResponse;
-import com.spartansoftwareinc.tipp.TIPPTool;
-import com.spartansoftwareinc.tipp.TIPPError.Type;
+import static com.spartansoftwareinc.tipp.TIPPErrorType.*;
 
 import static org.junit.Assert.*;
 
@@ -53,7 +33,7 @@ public class TestTIPManifest {
     @Test
     public void testManifest() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();   
+        CollectingErrorHandler status = new CollectingErrorHandler();   
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/peanut_butter.xml"), status);
         TestUtils.expectLoadStatus(status, 0, TIPPErrorSeverity.NONE);
@@ -63,7 +43,7 @@ public class TestTIPManifest {
     @Test
     public void testInvalidResponseMessage() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         try {
             manifest.loadFromStream(getClass().getResourceAsStream(
                     "data/invalid_repsonse_message.xml"), status);
@@ -71,15 +51,15 @@ public class TestTIPManifest {
         catch (ReportedException e) {
             // expected
         }
-        assertEquals(1, status.getAllErrors().size());
-        assertEquals(TIPPErrorSeverity.FATAL, status.getSeverity());
-        assertEquals(TIPPError.Type.INVALID_MANIFEST, status.getAllErrors().get(0).getErrorType());
+        assertEquals(1, status.getErrors().size());
+        assertEquals(TIPPErrorSeverity.FATAL, status.getMaxSeverity());
+        assertEquals(INVALID_MANIFEST, status.getErrors().get(0).getErrorType());
     }
     
     @Test
     public void testInvalidSequenceValue() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         try {
             manifest.loadFromStream(getClass().getResourceAsStream(
                     "data/invalid_sequence.xml"), status);
@@ -88,15 +68,15 @@ public class TestTIPManifest {
             // expected
         }
         // This shows up as a validation error
-        assertEquals(1, status.getAllErrors().size());
-        assertEquals(TIPPErrorSeverity.FATAL, status.getSeverity());
-        assertEquals(TIPPError.Type.INVALID_MANIFEST, status.getAllErrors().get(0).getErrorType());
+        assertEquals(1, status.getErrors().size());
+        assertEquals(TIPPErrorSeverity.FATAL, status.getMaxSeverity());
+        assertEquals(INVALID_MANIFEST, status.getErrors().get(0).getErrorType());
     }
 
     @Test
     public void testCustomTaskType() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         try {
             manifest.loadFromStream(getClass().getResourceAsStream(
                     "data/custom_task.xml"), status);
@@ -104,14 +84,14 @@ public class TestTIPManifest {
         catch (ReportedException e) {
             fail();
         }
-        assertEquals(0, status.getAllErrors().size());
+        assertEquals(0, status.getErrors().size());
         assertEquals("http://spartansoftware.com/tasks/test", manifest.getTask().getTaskType());
     }
     
     @Test
     public void testDuplicateSectionInManifest() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         try {
             manifest.loadFromStream(getClass().getResourceAsStream(
                     "data/duplicate_section_request.xml"), status);
@@ -119,52 +99,52 @@ public class TestTIPManifest {
         catch (ReportedException e) {
             // expected
         }
-        assertEquals(1, status.getAllErrors().size());
-        assertEquals(TIPPErrorSeverity.ERROR, status.getSeverity());
-        assertEquals(TIPPError.Type.DUPLICATE_SECTION_IN_MANIFEST, status.getAllErrors().get(0).getErrorType());
+        assertEquals(1, status.getErrors().size());
+        assertEquals(TIPPErrorSeverity.ERROR, status.getMaxSeverity());
+        assertEquals(DUPLICATE_SECTION_IN_MANIFEST, status.getErrors().get(0).getErrorType());
     }
     
     @Test
     public void testDuplicateResourcesInManifest() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         Manifest manifest = new Manifest(null);
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/duplicate_resources.xml"), status);
         new PayloadValidator().validate(manifest, 
                 new TestStore(Collections.singleton("bilingual/Peanut_Butter.xlf")), status);
         TestTIPPackage.checkErrors(status, 1);
-        assertEquals(TIPPError.Type.DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST, 
-                status.getAllErrors().get(0).getErrorType());
+        assertEquals(DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST, 
+                status.getErrors().get(0).getErrorType());
     }
 
     @Test
     public void testDuplicateResourceSequencesInManifest() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         Manifest manifest = new Manifest(null);
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/duplicate_sequences.xml"), status);
         TestTIPPackage.checkErrors(status, 1);
-        assertEquals(TIPPError.Type.DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST, 
-                status.getAllErrors().get(0).getErrorType());
+        assertEquals(DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST, 
+                status.getErrors().get(0).getErrorType());
     }
 
     @Test
     public void testInvalidLocationsInManifest() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/invalid_location.xml"), status);
         TestTIPPackage.checkErrors(status, 7);
         for (int i = 0; i < 7; i++) {
-            assertEquals(Type.INVALID_RESOURCE_LOCATION_IN_MANIFEST,
-                        status.getAllErrors().get(i).getErrorType());
+            assertEquals(INVALID_RESOURCE_LOCATION_IN_MANIFEST,
+                        status.getErrors().get(i).getErrorType());
         }
     }
 
     @Test
     public void testInvalidSectionInManifest() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         try {
             manifest.loadFromStream(getClass().getResourceAsStream(
                     "data/invalid_section_request.xml"), status);
@@ -172,15 +152,15 @@ public class TestTIPManifest {
         catch (ReportedException e) {
             // expected
         }
-        assertEquals(1, status.getAllErrors().size());
-        assertEquals(TIPPError.Type.INVALID_MANIFEST, status.getAllErrors().get(0).getErrorType());
-        assertEquals(TIPPErrorSeverity.FATAL, status.getSeverity());
+        assertEquals(1, status.getErrors().size());
+        assertEquals(INVALID_MANIFEST, status.getErrors().get(0).getErrorType());
+        assertEquals(TIPPErrorSeverity.FATAL, status.getMaxSeverity());
     }
 
     @Test
     public void testInvalidSectionForTaskType() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         try {
             manifest.loadFromStream(getClass().getResourceAsStream(
                     "data/invalid_section_strict_bitext.xml"), status);
@@ -188,41 +168,41 @@ public class TestTIPManifest {
         catch (ReportedException e) {
             // expected
         }
-        assertEquals(1, status.getAllErrors().size());
-        assertEquals(TIPPError.Type.INVALID_SECTION_FOR_TASK, status.getAllErrors().get(0).getErrorType());
-        assertEquals(TIPPErrorSeverity.ERROR, status.getSeverity());
+        assertEquals(1, status.getErrors().size());
+        assertEquals(INVALID_SECTION_FOR_TASK, status.getErrors().get(0).getErrorType());
+        assertEquals(TIPPErrorSeverity.ERROR, status.getMaxSeverity());
     }
     
     @Test
     public void testManifestSave() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/peanut_butter.xml"), status);
-        assertEquals(0, status.getAllErrors().size());
-        status = new TIPPLoadStatus();
+        assertEquals(0, status.getErrors().size());
+        status = new CollectingErrorHandler();
         Manifest roundtrip = roundtripManifest(manifest, status);
-        assertEquals(0, status.getAllErrors().size());
+        assertEquals(0, status.getErrors().size());
         verifyRequestManifest(roundtrip);
     }
 
     @Test
     public void testResponseManifest() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/peanut_butter_response.xml"), status);
-        assertEquals(0, status.getAllErrors().size());
+        assertEquals(0, status.getErrors().size());
         verifySampleResponseManifest(manifest);
-        status = new TIPPLoadStatus();
+        status = new CollectingErrorHandler();
         Manifest roundtrip = roundtripManifest(manifest, status);
-        assertEquals(0, status.getAllErrors().size());
+        assertEquals(0, status.getErrors().size());
         verifySampleResponseManifest(roundtrip);
     }
 
     @Test
     public void testResponseCreationFromRequest() throws Exception {
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
     	TIPP requestPackage = getSamplePackage("data/test_package.zip", status);
     	TestTIPPackage.checkErrors(status, 0);
         Manifest responseManifest = Manifest.newResponseManifest(null, requestPackage);
@@ -244,11 +224,11 @@ public class TestTIPManifest {
     //@Test
     public void testManifestSignature() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/peanut_butter.xml"), status);
-        assertEquals(0, status.getAllErrors().size());
-        status = new TIPPLoadStatus();
+        assertEquals(0, status.getErrors().size());
+        status = new CollectingErrorHandler();
         File temp = File.createTempFile("tipp", ".xml");
         System.out.println("Using: " + temp);
         FileOutputStream fos = new FileOutputStream(temp);
@@ -265,16 +245,16 @@ public class TestTIPManifest {
         // Make sure that the signer gives us a warning if the signature
         // exists but we don't provide the key
         Manifest roundtrip = new Manifest(null);
-        TIPPLoadStatus roundtripStatus = new TIPPLoadStatus();
+        CollectingErrorHandler roundtripStatus = new CollectingErrorHandler();
         FileInputStream fis = new FileInputStream(temp);
         roundtrip.loadFromStream(fis, roundtripStatus);
         TestUtils.expectLoadStatus(roundtripStatus, 1, TIPPErrorSeverity.WARN);
-        assertEquals(Type.UNABLE_TO_VERIFY_SIGNATURE, 
-                roundtripStatus.getAllErrors().get(0).getErrorType());
+        assertEquals(UNABLE_TO_VERIFY_SIGNATURE, 
+                roundtripStatus.getErrors().get(0).getErrorType());
         
         // Now verify the signature for real
         roundtrip = new Manifest(null);
-        roundtripStatus = new TIPPLoadStatus();
+        roundtripStatus = new CollectingErrorHandler();
         fis = new FileInputStream(temp);
         roundtrip.loadFromStream(fis, roundtripStatus, KeySelector.singletonKeySelector(kp.getPublic()),
                                  null);
@@ -299,9 +279,9 @@ public class TestTIPManifest {
         TIPPSection section = manifest.getSection(
                 TIPPSectionType.BILINGUAL);
         section.addFile(file);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         Manifest roundtrip = roundtripManifest(manifest, status);
-        assertEquals(0, status.getAllErrors().size());
+        assertEquals(0, status.getErrors().size());
         assertEquals("urn:uuid:12345", roundtrip.getPackageId());
         assertEquals(manifest.getCreator(), roundtrip.getCreator());
         assertEquals(manifest.getTask(), roundtrip.getTask());
@@ -313,7 +293,7 @@ public class TestTIPManifest {
     @Test
     public void testReferenceResources() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/reference-request.xml"), status);
         TestTIPPackage.checkErrors(status, 0);
@@ -327,7 +307,7 @@ public class TestTIPManifest {
     @Test
     public void testSectionOrdering() throws Exception {
         Manifest manifest = new Manifest(null);
-        TIPPLoadStatus status = new TIPPLoadStatus();
+        CollectingErrorHandler status = new CollectingErrorHandler();
         manifest.loadFromStream(getClass().getResourceAsStream(
                 "data/out_of_order_resources.xml"), status);
         TestTIPPackage.checkErrors(status, 0);
@@ -349,7 +329,7 @@ public class TestTIPManifest {
         assertEquals(1, file.getSequence());
     }
 
-    private Manifest roundtripManifest(Manifest src, TIPPLoadStatus status) throws Exception {
+    private Manifest roundtripManifest(Manifest src, CollectingErrorHandler status) throws Exception {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         new ManifestWriter().saveToStream(src, output);
         // TODO: write it out to take a look
@@ -455,10 +435,10 @@ public class TestTIPManifest {
                 new ArrayList<TIPPFile>(section.getResources()));
     }
     
-    private TIPP getSamplePackage(String path, TIPPLoadStatus status) throws Exception {
+    private TIPP getSamplePackage(String path, CollectingErrorHandler status) throws Exception {
         InputStream is = 
             getClass().getResourceAsStream(path);
-        return new TIPPFactory().openFromStream(is, status);
+        return TestUtils.createFactory(status).openFromStream(is);
     }
 
     /**

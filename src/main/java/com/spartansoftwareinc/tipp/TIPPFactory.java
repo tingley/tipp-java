@@ -8,6 +8,22 @@ import javax.xml.crypto.KeySelector;
 public class TIPPFactory {
 
     private PackageStoreFactory storeFactory = new InMemoryPackageStoreFactory();
+    private TIPPErrorHandler errorHandler = new DefaultErrorHandler();
+    
+    public TIPPErrorHandler getErrorHandler() {
+        return errorHandler;
+    }
+
+    public void setErrorHandler(TIPPErrorHandler errorHandler) {
+        if (errorHandler == null) {
+            throw new IllegalArgumentException("errorHandler can't be null");
+        }
+        this.errorHandler = errorHandler;
+    }
+
+    public PackageStoreFactory getPackageStoreFactory() {
+        return storeFactory;
+    }
 
     public void setPackageStoreFactory(PackageStoreFactory strategy) {
         if (strategy == null) {
@@ -32,12 +48,10 @@ public class TIPPFactory {
      * 
      * @return a TIPP if parsing was completed, or null if a FATAL error occurred.
      * @throws IOException 
-     * @throws TIPPException if some other type of error occurred
      */
-    public TIPP openFromStream(InputStream inputStream, 
-                               TIPPLoadStatus status) throws IOException {
+    public TIPP openFromStream(InputStream inputStream) throws IOException {
         return openFromStream(inputStream, storeFactory.newPackageStore(),
-                              status, null);
+                              null);
     }
     
     /**
@@ -56,27 +70,24 @@ public class TIPPFactory {
      * 
      * @return a TIPP if parsing was completed, or null if a FATAL error occurred.
      * @throws IOException 
-     * @throws TIPPException if some other type of error occurred
      */
     public TIPP openFromStream(InputStream inputStream, 
-            TIPPLoadStatus status,
             KeySelector keySelector) throws IOException {
         PackageStore store = storeFactory.newPackageStore();
-        return openFromStream(inputStream, store, status, keySelector);
+        return openFromStream(inputStream, store, keySelector);
     }
 
     private TIPP openFromStream(InputStream inputStream,
-            PackageStore store, TIPPLoadStatus status,
-            KeySelector keySelector) throws IOException {
+            PackageStore store, KeySelector keySelector) throws IOException {
         try {
             // XXX Not clear that open, close are still needed
             // TODO: move this elsewhere
             PackageSource source = new StreamPackageSource(inputStream);
-            source.open(status);
+            source.open(errorHandler);
             source.copyToStore(store);
             source.close();
 
-            return new PackageReader(store).load(status, keySelector);
+            return new PackageReader(store).load(errorHandler, keySelector);
         }
         catch (ReportedException e) {
             // Reported exceptions will be logged as part of the load status;

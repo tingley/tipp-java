@@ -120,7 +120,6 @@ abstract class PackageBase implements TIPP {
     /**
      * Write this package to an output stream as a ZIP archive
      * @param outputStream
-     * @throws TIPPException
      * @throws IOException
      */
     public void saveToStream(OutputStream outputStream) throws TIPPException, IOException {
@@ -214,7 +213,7 @@ abstract class PackageBase implements TIPP {
     	return new BufferedInputStream(store.getObjectFileData(path));
     }
     
-    BufferedOutputStream getPackageObjectOutputStream(String path) throws IOException, TIPPException {
+    BufferedOutputStream getPackageObjectOutputStream(String path) throws IOException {
     	return new BufferedOutputStream(store.storeObjectFileData(path));
     }
 }

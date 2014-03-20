@@ -4,17 +4,16 @@ import java.util.List;
 
 import com.spartansoftwareinc.tipp.TIPPError;
 import com.spartansoftwareinc.tipp.TIPPErrorSeverity;
-import com.spartansoftwareinc.tipp.TIPPLoadStatus;
 
 import static org.junit.Assert.*;
 
 public class TestUtils {
 
-    public static void expectLoadStatus(TIPPLoadStatus status, 
+    public static void expectLoadStatus(CollectingErrorHandler handler, 
             int expectedSize, TIPPErrorSeverity expectedSeverity) {
-        List<TIPPError> errors = status.getAllErrors();
+        List<TIPPError> errors = handler.getErrors();
         if (errors.size() != expectedSize || 
-                !status.getSeverity().equals(expectedSeverity)) {
+                !handler.getMaxSeverity().equals(expectedSeverity)) {
             System.err.println("Expected " + expectedSize + 
                     " errors, max severity " + expectedSeverity);
             for (TIPPError e : errors) {
@@ -24,7 +23,14 @@ public class TestUtils {
                 }
             }
             assertEquals(expectedSize, errors.size());
-            assertEquals(expectedSeverity, status.getSeverity());
+            assertEquals(expectedSeverity, handler.getMaxSeverity());
         }
+    }
+
+
+    public static TIPPFactory createFactory(TIPPErrorHandler handler) {
+        TIPPFactory factory = new TIPPFactory();
+        factory.setErrorHandler(handler);
+        return factory;
     }
 }

@@ -44,7 +44,7 @@ public abstract class TIPPResource {
     
     public abstract BufferedInputStream getInputStream() throws IOException;
 
-    public abstract BufferedOutputStream getOutputStream() throws IOException, TIPPException;
+    public abstract BufferedOutputStream getOutputStream() throws IOException;
     
     void setPackage(PackageBase tipPackage) {
         this.tipPackage = tipPackage;
