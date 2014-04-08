@@ -13,9 +13,9 @@ class PackageReader {
 
     PackageBase load(TIPPErrorHandler errorHandler, KeySelector keySelector) throws IOException {
         try {
-            Manifest manifest = new Manifest(null);
-            if (!manifest.loadFromStream(store.getManifestData(), errorHandler, keySelector, 
-                                         store.getRawPayloadData())) {
+            Manifest manifest = new ManifestLoader().loadFromStream(store.getManifestData(),
+                    errorHandler, keySelector, store.getRawPayloadData());
+            if (manifest == null) {
                 return null;
             }
             // What kind of manifest was it?
@@ -34,6 +34,7 @@ class PackageReader {
             // first and the package doesn't exist yet.  So I need to go back
             // and re-inject the package once it has been created.
             for (TIPPSection section : tipp.getSections()) {
+                section.setPackage(tipp);
                 for (TIPPResource file : section.getResources()) {
                     file.setPackage(tipp);
                 }
