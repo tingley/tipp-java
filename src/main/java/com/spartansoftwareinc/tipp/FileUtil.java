@@ -8,8 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import java.util.zip.ZipInputStream;
 
 class FileUtil {
 
@@ -33,13 +32,13 @@ class FileUtil {
         return tempDir;
     }
     
-    public static ZipArchiveInputStream getZipInputStream(InputStream inputStream) 
+    public static ZipInputStream getZipInputStream(InputStream inputStream) 
             throws IOException {
-        if (inputStream instanceof ZipArchiveInputStream) {
-            return (ZipArchiveInputStream)inputStream;
+        if (inputStream instanceof ZipInputStream) {
+            return (ZipInputStream)inputStream;
         }
         else {
-            return new ZipArchiveInputStream(inputStream);
+            return new ZipInputStream(inputStream);
         }
     }
     

@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyPair;
 import java.util.Collection;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Base package implementations.  This is actually mutable, and the 
@@ -141,7 +141,7 @@ abstract class PackageBase implements TIPP {
     }
     
     private void saveToStream(ManifestWriter mw, OutputStream outputStream) throws TIPPException, IOException {
-        ZipArchiveOutputStream zos = new ZipArchiveOutputStream(outputStream);
+        ZipOutputStream zos = new ZipOutputStream(outputStream);
 
         // For some reason writing the zip stream out within another
         // zip stream gives me strange zip corruption errors.  Write
@@ -151,17 +151,17 @@ abstract class PackageBase implements TIPP {
         tempOutputStream.close();
         
         // Write out all the parts as an inner archive
-        zos.putArchiveEntry(new ZipArchiveEntry(PAYLOAD_FILE));
+        zos.putNextEntry(new ZipEntry(PAYLOAD_FILE));
         FileUtil.copyStreamToStream(store.getTransientData("output-stream"), zos);
-        zos.closeArchiveEntry();
+        zos.closeEntry();
 
         // Now write out the manifest.  We do this last so we can
         // pass the objects reference.
         // Add the payload as well, in case we are signing.
         mw.setPayload(store.removeTransientData("output-stream"));
-        zos.putArchiveEntry(new ZipArchiveEntry(MANIFEST));
+        zos.putNextEntry(new ZipEntry(MANIFEST));
         mw.saveToStream(manifest, zos);
-        zos.closeArchiveEntry();
+        zos.closeEntry();
 
         zos.flush();
         zos.close();
@@ -172,7 +172,7 @@ abstract class PackageBase implements TIPP {
      * @return 
      */
     void writePayload(OutputStream os) throws IOException {
-        ZipArchiveOutputStream zos = new ZipArchiveOutputStream(os);
+        ZipOutputStream zos = new ZipOutputStream(os);
         writeZipPayload(zos);
         zos.close();
     }
@@ -183,14 +183,14 @@ abstract class PackageBase implements TIPP {
      * @param outputStream
      * @throws IOException
      */
-    void writeZipPayload(ZipArchiveOutputStream zos) throws IOException {
+    void writeZipPayload(ZipOutputStream zos) throws IOException {
         for (TIPPSection section : manifest.getSections()) {
             for (TIPPFile file : section.getResources()) {
                 String path = ((TIPPFile)file).getCanonicalObjectPath();
-                zos.putArchiveEntry(new ZipArchiveEntry(path));
+                zos.putNextEntry(new ZipEntry(path));
                 InputStream is = file.getInputStream();
                 FileUtil.copyStreamToStream(is, zos);
-                zos.closeArchiveEntry();
+                zos.closeEntry();
                 is.close();
             }
         }

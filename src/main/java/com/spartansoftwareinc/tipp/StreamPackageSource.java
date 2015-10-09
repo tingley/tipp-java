@@ -2,9 +2,8 @@ package com.spartansoftwareinc.tipp;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * PackageSource that reads contents from a zipped package archive.
@@ -26,9 +25,9 @@ class StreamPackageSource extends PackageSource {
     @Override
     void copyToStore(PackageStore store) throws IOException {
         try {
-            ZipArchiveInputStream zis = FileUtil.getZipInputStream(inputStream);
-            for (ZipArchiveEntry entry = zis.getNextZipEntry(); entry != null; 
-                    entry = zis.getNextZipEntry()) {
+            ZipInputStream zis = FileUtil.getZipInputStream(inputStream);
+            for (ZipEntry entry = zis.getNextEntry(); entry != null; 
+                    entry = zis.getNextEntry()) {
                 if (entry.isDirectory()) {
                     continue;
                 }
@@ -68,9 +67,9 @@ class StreamPackageSource extends PackageSource {
         // signature validation.
         FileUtil.copyStreamToStreamAndCloseDest(is, 
                             store.storeRawPayloadData());
-        ZipArchiveInputStream zis = FileUtil.getZipInputStream(store.getRawPayloadData());
-        for (ZipArchiveEntry entry = zis.getNextZipEntry(); entry != null; 
-                entry = zis.getNextZipEntry()) {
+        ZipInputStream zis = FileUtil.getZipInputStream(store.getRawPayloadData());
+        for (ZipEntry entry = zis.getNextEntry(); entry != null; 
+                entry = zis.getNextEntry()) {
             if (entry.isDirectory()) {
                 continue;
             }
