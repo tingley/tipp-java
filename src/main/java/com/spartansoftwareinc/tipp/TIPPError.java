@@ -1,5 +1,7 @@
 package com.spartansoftwareinc.tipp;
 
+import java.util.Objects;
+
 // XXX Move into CollectingErrorHandler?
 public class TIPPError {
     
@@ -35,12 +37,7 @@ public class TIPPError {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((errorType == null) ? 0 : errorType.hashCode());
-        result = prime * result + ((message == null) ? 0 : message.hashCode());
-        return result;
+        return Objects.hash(errorType, message);
     }
 
     @Override
@@ -48,9 +45,8 @@ public class TIPPError {
         if (o == this) return true;
         if (o == null || !(o instanceof TIPPError)) return false;
         TIPPError e = (TIPPError)o;
-        return (errorType == e.getErrorType() &&
-                 (message == e.getMessage() || 
-                     message != null && message.equals(e.getMessage())));
+        return Objects.equals(errorType, e.errorType) &&
+               Objects.equals(message, e.message);
     } 
     
     @Override

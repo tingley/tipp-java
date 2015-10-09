@@ -6,6 +6,7 @@ import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -86,6 +87,6 @@ public class TIPPFile extends TIPPResource {
         if (this == o) return true;
         if (!(o instanceof TIPPFile)) return false;
         TIPPFile f = (TIPPFile)o;
-        return super.equals(o) && f.getLocation().equals(getLocation()); 
+        return super.equals(o) && Objects.equals(location, f.location);
     }
 }

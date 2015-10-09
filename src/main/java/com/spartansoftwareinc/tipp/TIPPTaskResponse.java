@@ -4,6 +4,8 @@ import static com.spartansoftwareinc.tipp.TIPPConstants.TASK_RESPONSE;
 import static com.spartansoftwareinc.tipp.TIPPConstants.UNIQUE_PACKAGE_ID;
 import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
 
+import java.util.Objects;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -98,10 +100,10 @@ class TIPPTaskResponse extends TIPPTask {
         if (!super.equals(o) || 
             !(o instanceof TIPPTaskResponse)) return false;
         TIPPTaskResponse r = (TIPPTaskResponse)o;
-        return r.getMessage().equals(getMessage()) &&
-                r.getComment().equals(getComment()) &&
-                r.getRequestPackageId().equals(getRequestPackageId()) &&
-                r.getRequestCreator().equals(getRequestCreator());
+        return Objects.equals(message, r.message) &&
+               Objects.equals(comment, r.comment) &&
+               Objects.equals(requestPackageId, r.requestPackageId) &&
+               Objects.equals(requestCreator, r.requestCreator);
     }
     
     @Override

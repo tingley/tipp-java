@@ -5,6 +5,7 @@ import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -98,11 +99,7 @@ public abstract class TIPPResource {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + name.hashCode();
-        result = prime * result + sequence;
-        return result;
+        return Objects.hash(name, sequence);
     }
 
     @Override
@@ -114,7 +111,7 @@ public abstract class TIPPResource {
             return false;
         }
         TIPPResource f = (TIPPResource)o;
-        return f.getName().equals(getName()) &&
-               f.getSequence() == getSequence();
+        return Objects.equals(name, f.name) &&
+               Objects.equals(sequence, f.sequence);
     }
 }

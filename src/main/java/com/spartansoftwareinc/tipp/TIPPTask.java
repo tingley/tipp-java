@@ -2,6 +2,8 @@ package com.spartansoftwareinc.tipp;
 
 import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
 
+import java.util.Objects;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -59,9 +61,9 @@ abstract class TIPPTask {
         if (o == this) return true;
         if (o == null || !(o instanceof TIPPTask)) return false;
         TIPPTask t = (TIPPTask)o;
-        return t.getTaskType().equals(getTaskType()) &&
-                t.getSourceLocale().equals(getSourceLocale()) &&
-                t.getTargetLocale().equals(getTargetLocale());
+        return Objects.equals(taskType, t.taskType) &&
+               Objects.equals(sourceLocale, t.sourceLocale) &&
+               Objects.equals(targetLocale, t.targetLocale);
     }
     
     @Override

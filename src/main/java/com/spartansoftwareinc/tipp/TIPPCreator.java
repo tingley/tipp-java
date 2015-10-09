@@ -4,6 +4,7 @@ import static com.spartansoftwareinc.tipp.TIPPConstants.PACKAGE_CREATOR;
 import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
 
 import java.util.Date;
+import java.util.Objects;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -71,10 +72,10 @@ public class TIPPCreator {
         if (o == this) return true;
         if (o == null || !(o instanceof TIPPCreator)) return false;
         TIPPCreator c = (TIPPCreator)o;
-        return c.getName().equals(getName()) &&
-                c.getId().equals(getId()) &&
-                c.getDate().equals(getDate()) &&
-                c.getTool().equals(getTool());
+        return Objects.equals(name, c.name) &&
+               Objects.equals(id, c.id) &&
+               Objects.equals(date, c.date) &&
+               Objects.equals(tool, c.tool);
     }
     
     @Override

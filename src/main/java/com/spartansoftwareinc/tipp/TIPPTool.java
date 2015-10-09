@@ -3,6 +3,8 @@ package com.spartansoftwareinc.tipp;
 import static com.spartansoftwareinc.tipp.TIPPConstants.TOOL;
 import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
 
+import java.util.Objects;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -65,9 +67,9 @@ public class TIPPTool {
         if (o == this) return true;
         if (o == null || !(o instanceof TIPPTool)) return false;
         TIPPTool t = (TIPPTool)o;
-        return getName().equals(t.getName()) &&
-               getId().equals(t.getId()) &&
-               getVersion().equals(t.getVersion());
+        return Objects.equals(name, t.name) &&
+               Objects.equals(id, t.id) &&
+               Objects.equals(version, t.version);
     }
     
     @Override

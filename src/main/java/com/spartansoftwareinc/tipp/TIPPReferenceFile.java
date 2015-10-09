@@ -2,6 +2,8 @@ package com.spartansoftwareinc.tipp;
 
 import static com.spartansoftwareinc.tipp.TIPPConstants.REFERENCE_FILE_RESOURCE;
 
+import java.util.Objects;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -43,8 +45,7 @@ public class TIPPReferenceFile extends TIPPFile {
 
     @Override
     public int hashCode() {
-        return super.hashCode() * 31 +
-            (languageChoice != null ? languageChoice.hashCode() : 0);
+        return super.hashCode() * 31 + Objects.hashCode(languageChoice);
     }
     
     @Override
@@ -56,11 +57,7 @@ public class TIPPReferenceFile extends TIPPFile {
             return false;
         }
         TIPPReferenceFile f = (TIPPReferenceFile)o;
-        if (((f.languageChoice == null && languageChoice == null) ||
-             (f.languageChoice != null && f.languageChoice.equals(languageChoice))) &&
-            super.equals(o)) {
-            return true;
-        }
-        return false;
+        return super.equals(f) &&
+               Objects.equals(languageChoice, f.languageChoice);
     }
 }

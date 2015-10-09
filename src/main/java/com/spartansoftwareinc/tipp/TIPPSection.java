@@ -7,6 +7,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
@@ -217,17 +218,13 @@ public class TIPPSection {
             return false;
         }
         TIPPSection s = (TIPPSection)o;
-        return type.equals(s.getType()) &&
-                resources.equals(s.getResources());
+        return Objects.equals(type,  s.type) &&
+               Objects.equals(resources, s.resources);
     }
     
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + type.hashCode();
-        result = prime * result + resources.hashCode();
-        return result;
+        return Objects.hash(type, resources);
     }
 
     static final SequenceComparator SEQUENCE_COMPARATOR = new SequenceComparator();
