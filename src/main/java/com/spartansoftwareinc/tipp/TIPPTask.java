@@ -65,7 +65,12 @@ abstract class TIPPTask {
                Objects.equals(sourceLocale, t.sourceLocale) &&
                Objects.equals(targetLocale, t.targetLocale);
     }
-    
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(taskType, sourceLocale, targetLocale);
+    }
+
     @Override
     public String toString() {
         return getTaskType() + "[" + getSourceLocale() + "->" + getTargetLocale()

@@ -96,6 +96,11 @@ class TIPPTaskResponse extends TIPPTask {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(message, comment, requestPackageId, requestCreator);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (!super.equals(o) || 
             !(o instanceof TIPPTaskResponse)) return false;

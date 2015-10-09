@@ -77,7 +77,12 @@ public class TIPPCreator {
                Objects.equals(date, c.date) &&
                Objects.equals(tool, c.tool);
     }
-    
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, id, date, tool);
+    }
+
     @Override
     public String toString() {
         return "TIPCreator(name=" + getName() + ", id=" + getId() +
