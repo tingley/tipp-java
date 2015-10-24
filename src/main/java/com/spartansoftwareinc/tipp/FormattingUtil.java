@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
 
-class TIPPFormattingUtil {
+class FormattingUtil {
 
     private static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     

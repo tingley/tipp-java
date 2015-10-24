@@ -35,7 +35,7 @@ import com.spartansoftwareinc.tipp.CollectingErrorHandler;
 import com.spartansoftwareinc.tipp.TIPPSection;
 import com.spartansoftwareinc.tipp.TIPPSectionType;
 import com.spartansoftwareinc.tipp.TIPPTool;
-import static com.spartansoftwareinc.tipp.TIPPFormattingUtil.*;
+import static com.spartansoftwareinc.tipp.FormattingUtil.*;
 import static com.spartansoftwareinc.tipp.TestUtils.*;
 
 import static org.junit.Assert.*;
@@ -251,7 +251,7 @@ public class TestTIPPackage {
         tipp.setCreator(
             new TIPPCreator("testname", "testid", 
                            TestTIPManifest.getDate(2011, 7, 12, 20, 35, 12), 
-                           new TIPPTool("jtip", 
+                           new TIPPTool("jtipp", 
                                    "http://code.google.com/p/interoperability-now", "0.15"))
         );
         String requestPackageId = tipp.getPackageId();

@@ -174,7 +174,7 @@ class ManifestLoader {
     }
     
     private Date loadDate(Element dateNode) {
-        return TIPPFormattingUtil.parseTIPPDate(getTextContent(dateNode));
+        return FormattingUtil.parseTIPPDate(getTextContent(dateNode));
     }
     
     private TIPPTool loadTool(Element toolEl) {
@@ -282,7 +282,7 @@ class ManifestLoader {
         }
         String location = getChildTextByName(file, ObjectFile.LOCATION);
         object.setLocation(location);
-        if (!TIPPFormattingUtil.validLocationString(section, location)) {
+        if (!FormattingUtil.validLocationString(section, location)) {
             errorHandler.reportError(INVALID_RESOURCE_LOCATION_IN_MANIFEST,
                             "Invalid location: " + location, null);
         }

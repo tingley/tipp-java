@@ -420,7 +420,7 @@ public class TestTIPManifest {
      * This follows the Calendar.set() parameter conventions. Note that month is
      * zero-indexed!
      */
-    static Date getDate(int y, int mon, int d, int h, int min, int s) {
+    public static Date getDate(int y, int mon, int d, int h, int min, int s) {
         Calendar c = GregorianCalendar.getInstance();
         c.setTimeInMillis(0); // Zero out the ms field or comparison may fail!
         c.set(y, mon, d, h, min, s); // note 0-indexed month

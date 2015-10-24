@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -100,7 +99,7 @@ public class TIPPSection {
     }
     
     protected String getLocationForName(String name) {
-        if (TIPPFormattingUtil.validLocationString(this, name)) {
+        if (FormattingUtil.validLocationString(this, name)) {
             return name;
         }
         // Name needs normalization.  We do this by a pretty dumb mechanism - 
