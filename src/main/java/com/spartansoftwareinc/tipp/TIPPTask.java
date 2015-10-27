@@ -1,56 +1,28 @@
 package com.spartansoftwareinc.tipp;
 
-import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
-
 import java.util.Objects;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.spartansoftwareinc.tipp.TIPPConstants.Task;
 
 abstract class TIPPTask {
 
-    private String taskType;
+    private TIPPTaskType taskType;
     private String sourceLocale, targetLocale;
 
     TIPPTask() { }
     
-    public TIPPTask(String taskType, String sourceLocale, String targetLocale) {
+    public TIPPTask(TIPPTaskType taskType, String sourceLocale, String targetLocale) {
         this.taskType = taskType;
         this.sourceLocale = sourceLocale;
         this.targetLocale = targetLocale;
     }
     
-    public String getTaskType() {
+    public TIPPTaskType getTaskType() {
         return taskType;
-    }
-    public void setTaskType(String taskType) {
-        this.taskType = taskType;
     }
     public String getSourceLocale() {
         return sourceLocale;
     }
-    public void setSourceLocale(String sourceLocale) {
-        this.sourceLocale = sourceLocale;
-    }
     public String getTargetLocale() {
         return targetLocale;
-    }
-    public void setTargetLocale(String targetLocale) {
-        this.targetLocale = targetLocale;
-    }
-
-    abstract Element toElement(Document doc);
-
-    protected Element addTaskData(Document doc, Element el) {
-        appendElementChildWithText(doc, el, 
-                Task.TYPE, getTaskType());
-        appendElementChildWithText(doc, el, 
-                Task.SOURCE_LANGUAGE, getSourceLocale());        
-        appendElementChildWithText(doc, el, 
-                Task.TARGET_LANGUAGE, getTargetLocale());
-        return el;
     }
 
     /**

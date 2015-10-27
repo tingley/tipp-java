@@ -1,92 +1,14 @@
 package com.spartansoftwareinc.tipp;
 
-import static com.spartansoftwareinc.tipp.TIPPConstants.FILE_RESOURCE;
-import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.util.Objects;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.spartansoftwareinc.tipp.TIPPConstants.ObjectFile;
-
+/**
+ * TIPP File resources are identified by an abstract name as well
+ * as a sequence. The location within the TIPP section (which may or may not
+ * be identical to the name) is not considered part of the file information,
+ * as it's an implementation detail, but may be obtained by querying the
+ * package itself for a given TIPPFile location.
+ */
 public class TIPPFile extends TIPPResource {
-    private String location;
-
-    TIPPFile() { }
-
-    /**
-     * Constructor where name and location are the same.
-     * @param location
-     */
-
-    TIPPFile(String location, int sequence) {
-        super(location, sequence);
-        this.location = location;
-    }
-    
-    TIPPFile(String location, String name, int sequence) {
-        this(name, sequence);
-        this.location = location;
-    }
-    
-    @Override
-    public String getName() {
-        return super.getName() != null ? super.getName() : getLocation(); 
-    }
-        
-    @Override
-    public BufferedInputStream getInputStream() throws IOException {
-        return getPackage().getPackageObjectInputStream(getCanonicalObjectPath());
-    }
-
-    @Override
-    public BufferedOutputStream getOutputStream() throws IOException {
-        return getPackage().getPackageObjectOutputStream(getCanonicalObjectPath());
-    }
-
-    public String getCanonicalObjectPath() {
-        return getSection().getType().getDefaultName() + PackageSource.SEPARATOR + location;
-    }
-    
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    Element toElement(Document doc) {
-        return addChildren(doc, doc.createElement(FILE_RESOURCE));
-    }
-    
-    @Override
-    protected Element addChildren(Document doc, Element resourceElement) {
-        super.addChildren(doc, resourceElement);
-        appendElementChildWithText(doc, resourceElement, ObjectFile.LOCATION,
-                                   getLocation());
-        return resourceElement;
-    }
-
-    @Override
-    public String toString() {
-        return getName() + "(" + location + ", " + getSequence() + ")";
-    }
-    
-    @Override
-    public int hashCode() {
-        return super.hashCode() * 31 + location.hashCode(); 
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TIPPFile)) return false;
-        TIPPFile f = (TIPPFile)o;
-        return super.equals(o) && Objects.equals(location, f.location);
+    TIPPFile(TIPPSectionType sectionType, String name, int sequence) {
+        super(sectionType, name, sequence);
     }
 }

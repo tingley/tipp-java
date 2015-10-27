@@ -11,68 +11,25 @@ import static org.junit.Assert.*;
  */
 public class TestTIPPSection {
 
+    private TIPPSection sectionWithFiles(TIPPSectionType type, String...names) {
+        SectionBuilder b = new SectionBuilder(type);
+        for (String name : names) {
+            b.addFile(name);
+        }
+        return b.build();
+    }
+
     @Test
-    public void testClearSection() {
-        TIPPSection s = new TIPPSection(TIPPSectionType.BILINGUAL);
-        s.addFile("test1");
-        s.addFile("test2");
-        List<? extends TIPPFile> l = s.getResources();
+    public void testSection() {
+        TIPPSection s = sectionWithFiles(TIPPSectionType.BILINGUAL, "test1", "test2");
+        List<? extends TIPPResource> l = s.getResources();
         assertEquals(2, l.size());
-        checkFile(1, "test1", "test1", l.get(0));
-        checkFile(2, "test2", "test2", l.get(1));
-        s.clear();
-        assertNotNull(s.getResources());
-        assertEquals(0, s.getResources().size());
-        // Now make sure the sequence reset
-        s.addFile("test1");
-        l = s.getResources();
-        assertEquals(1, l.size());
-        checkFile(1, "test1", "test1", l.get(0));
+        checkFile(1, "test1", (TIPPFile)l.get(0));
+        checkFile(2, "test2", (TIPPFile)l.get(1));
     }
 
-    @Test
-    public void testRemoveResource() {
-        TIPPSection s = new TIPPSection(TIPPSectionType.BILINGUAL);
-        s.addFile("test1");
-        s.addFile("test2");
-        s.removeResource("test1");
-        List<? extends TIPPFile> l = s.getResources();
-        assertEquals(1, l.size());
-        checkFile(2, "test2", "test2", l.get(0));
-        
-        // If we remove the remaining resource, the "next sequence" value
-        // should revert to 1
-        s.removeResource("test2");
-        assertEquals(0, s.getResources().size());
-        
-        s.addFile("test3");
-        assertEquals(1, s.getResources().size());
-        checkFile(1, "test3", "test3", s.getResources().get(0)); 
-    }
-
-    @Test
-    public void testAddFileWithSequence() {
-        TIPPSection s = new TIPPSection(TIPPSectionType.BILINGUAL);
-        s.addFile("test2", 2);
-        s.addFile("test1", 1);
-        List<? extends TIPPFile> l = s.getResources();
-        assertEquals(2, l.size());
-        checkFile(1, "test1", "test1", l.get(0));
-        checkFile(2, "test2", "test2", l.get(1));
-    }
-
-    @Test
-    public void testAddFileWithLargeSequence() {
-        TIPPSection s = new TIPPSection(TIPPSectionType.BILINGUAL);
-        s.addFile("test", 200);
-        List<? extends TIPPFile> l = s.getResources();
-        assertEquals(1, l.size());
-        checkFile(200, "test", "test", l.get(0));
-    }
-
-    private void checkFile(int sequence, String name, String location, TIPPFile f) {
+    private void checkFile(int sequence, String name, TIPPFile f) {
         assertEquals(sequence, f.getSequence());
         assertEquals(name, f.getName());
-        assertEquals(location, f.getLocation());
     }
 }

@@ -1,6 +1,7 @@
 package com.spartansoftwareinc.tipp;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Collection;
 
 /**
@@ -27,4 +28,20 @@ public class CustomTaskType implements TIPPTaskType {
         return supportedSectionTypes;
     }
 
+    @Override
+    public int hashCode() {
+        return type.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || !(o instanceof CustomTaskType)) return false;
+        return Objects.equals(type, ((CustomTaskType)o).type);
+    }
+
+    @Override
+    public String toString() {
+        return "CustomTaskType(" + type + ")";
+    }
 }

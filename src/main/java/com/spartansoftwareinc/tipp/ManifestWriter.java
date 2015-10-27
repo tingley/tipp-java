@@ -36,10 +36,10 @@ class ManifestWriter {
     }
     
     void saveToStream(Manifest manifest, OutputStream saveStream) throws TIPPException { 
-        try {
+        try (InputStream payloadIs = getPayload()) {
             Document document = new ManifestDOMBuilder(manifest).makeDocument();
             if (keyPair != null) {
-                new ManifestSigner().sign(document, getPayload(), keyPair);
+                new ManifestSigner().sign(document, payloadIs, keyPair);
             }
             CollectingErrorHandler errorHandler = new CollectingErrorHandler();
             //validate(document, errorHandler);

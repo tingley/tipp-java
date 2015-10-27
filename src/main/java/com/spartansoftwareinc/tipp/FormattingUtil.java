@@ -8,7 +8,16 @@ import java.util.regex.Pattern;
 class FormattingUtil {
 
     private static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-    
+
+    static Integer parseInt(String s) {
+        try {
+            return Integer.parseInt(s);
+        }
+        catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     static Date parseTIPPDate(String dateString) {
         try {
             SimpleDateFormat df = new SimpleDateFormat(FORMAT);
@@ -18,20 +27,20 @@ class FormattingUtil {
                                                dateString);
         }
     }
-    
+
     static String writeTIPPDate(Date date) {
         SimpleDateFormat df = new SimpleDateFormat(FORMAT);
         return df.format(date);
     }
-    
+
     // Check that a given location string satisfies the spec restrictions:
     // - Allowed chars: a-z, A-z, 0-9, underscore/dash/period/space
     // - Should not be prefixed with '/'
     // - length of path including section is < 240 chars
     // - '.' and '..' not present as path components
     private static final Pattern VALID_LOCATION_PATH = Pattern.compile("[a-zA-Z0-9_\\-\\. ]*");
-    static boolean validLocationString(TIPPSection section, String location) {
-        if ((section.getType().getDefaultName() + "/" + location).length() >= 240) {
+    static boolean validLocationString(TIPPSectionType sectionType, String location) {
+        if ((sectionType.getDefaultName() + "/" + location).length() >= 240) {
             return false; 
         }
         if (location.startsWith("/")) {

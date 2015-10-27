@@ -1,6 +1,7 @@
 package com.spartansoftwareinc.tipp;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyPair;
 import java.util.Collection;
@@ -11,10 +12,8 @@ public interface TIPP {
      * Close the package and release any resources used by it
      * (temporary files, etc).
      * @throws IOException
-     * @return true if this succeeds, false is some resources could
-     *         not be released
      */
-	boolean close() throws IOException;
+	void close() throws IOException;
 	
     /**
      * Write this package to an output stream as a ZIP archive
@@ -47,21 +46,11 @@ public interface TIPP {
 	
 	TIPPCreator getCreator();
 	
-	String getTaskType();
+	TIPPTaskType getTaskType();
 	
 	String getSourceLocale();
 	
 	String getTargetLocale();
-	
-	void setPackageId(String id);
-
-	void setCreator(TIPPCreator creator);
-
-	void setTaskType(String taskTypeUri);
-
-	void setSourceLocale(String sourceLocale);
-
-	void setTargetLocale(String targetLocale);
 	
 	TIPPSection getBilingualSection();
 	TIPPSection getInputSection();
@@ -81,4 +70,6 @@ public interface TIPP {
 	Collection<TIPPSection> getSections();
 
 	TIPPSection getSection(TIPPSectionType sectionType);
+
+	InputStream getFile(TIPPFile file) throws IOException;
 }

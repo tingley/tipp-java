@@ -24,6 +24,8 @@ public class DefaultErrorHandler implements TIPPErrorHandler {
         case WARN:
             warn(type, message, e);
             break;
+        default:
+            break;
         }
     }
     

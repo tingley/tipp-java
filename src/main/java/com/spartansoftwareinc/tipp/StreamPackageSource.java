@@ -1,31 +1,65 @@
 package com.spartansoftwareinc.tipp;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
  * PackageSource that reads contents from a zipped package archive.
  */
-class StreamPackageSource extends PackageSource {
+class StreamPackageSource {
+    public static final String SEPARATOR = "/";
 
     private InputStream inputStream;
     private TIPPErrorHandler errorHandler;
 
-    StreamPackageSource(InputStream inputStream) {
+    private Path manifest;
+    private Path objects;
+    private Map<String, Path> payloadPaths = new HashMap<>();
+
+    StreamPackageSource(InputStream inputStream, TIPPErrorHandler errorHandler) {
         this.inputStream = inputStream;
+        this.errorHandler = errorHandler;
     }
     
-    @Override
-    boolean close() throws IOException {
-        return true;
+    public void close() throws IOException {
+        Files.deleteIfExists(manifest);
+        Files.walkFileTree(objects, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
-    @Override
-    void copyToStore(PackageStore store) throws IOException {
-        try {
-            ZipInputStream zis = FileUtil.getZipInputStream(inputStream);
+    InputStream getManifest() throws IOException {
+        if (manifest == null) {
+            throw new FileNotFoundException("Missing manifest.xml");
+        }
+        return Files.newInputStream(manifest);
+    }
+
+    Payload getPayload() {
+        return new Payload(payloadPaths);
+    }
+
+    void expand() throws IOException {
+        try (ZipInputStream zis = FileUtil.getZipInputStream(inputStream)) {
             for (ZipEntry entry = zis.getNextEntry(); entry != null; 
                     entry = zis.getNextEntry()) {
                 if (entry.isDirectory()) {
@@ -33,17 +67,16 @@ class StreamPackageSource extends PackageSource {
                 }
                 String name = entry.getName();
                 if (name.equals(PackageBase.MANIFEST)) {
-                    FileUtil.copyStreamToStreamAndCloseDest(zis, store.storeManifestData());
+                    manifest = FileUtil.copyToTemp(zis, "tipp", ".xml");
                 }
                 else if (name.equals(PackageBase.PAYLOAD_FILE)) {
-                    copyPayloadToStore(zis, store);
+                    expandPayload(zis);
                 }
                 else {
                     errorHandler.reportError(TIPPErrorType.UNEXPECTED_PACKAGE_CONTENTS, 
                             "Unexpected package contents: " + name, null);
                 }
             }
-            zis.close();
         }
         catch (IOException e) {
             // XXX Is this still true?
@@ -57,7 +90,7 @@ class StreamPackageSource extends PackageSource {
         }
     }
     
-    private void copyPayloadToStore(InputStream is, PackageStore store) throws IOException {
+    private void expandPayload(InputStream is) throws IOException {
         // There's a bug in the Java zip implementation -- I can't actually open 
         // a zip stream within another stream without buffering it.  As a result, I need 
         // to dump the contents of the payload object into a temporary location and then
@@ -65,24 +98,19 @@ class StreamPackageSource extends PackageSource {
         // 
         // I also need to do this so I can retrieve the raw payload bytes for 
         // signature validation.
-        FileUtil.copyStreamToStreamAndCloseDest(is, 
-                            store.storeRawPayloadData());
-        ZipInputStream zis = FileUtil.getZipInputStream(store.getRawPayloadData());
-        for (ZipEntry entry = zis.getNextEntry(); entry != null; 
-                entry = zis.getNextEntry()) {
-            if (entry.isDirectory()) {
-                continue;
+        Path tempPayload = FileUtil.copyToTemp(is, "payload", ".zip");
+        objects = Files.createTempDirectory("tipp");
+        try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(tempPayload))) {
+            for (ZipEntry entry = zis.getNextEntry(); entry != null; 
+                    entry = zis.getNextEntry()) {
+                if (!entry.isDirectory()) {
+                    Path p = objects.resolve(entry.getName());
+                    Files.createDirectories(p.getParent());
+                    Files.copy(zis, p);
+                    payloadPaths.put(entry.getName(), p);
+                }
             }
-            FileUtil.copyStreamToStreamAndCloseDest(zis, 
-                    store.storeObjectFileData(entry.getName()));
         }
-        zis.close();
+        Files.delete(tempPayload);
     }
-    
-    @Override
-    void open(TIPPErrorHandler errorHandler) throws IOException {
-        this.errorHandler = errorHandler;
-    }
-
-
 }

@@ -22,8 +22,14 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.crypto.KeySelector;
 import javax.xml.parsers.DocumentBuilder;
@@ -48,6 +54,7 @@ import com.spartansoftwareinc.tipp.TIPPConstants.Creator;
 import com.spartansoftwareinc.tipp.TIPPConstants.ObjectFile;
 import com.spartansoftwareinc.tipp.TIPPConstants.Task;
 import com.spartansoftwareinc.tipp.TIPPConstants.TaskResponse;
+import com.spartansoftwareinc.tipp.TIPPReferenceFile.LanguageChoice;
 
 class ManifestLoader {
     static final String XMLDSIG_SCHEMA_URI = 
@@ -56,14 +63,12 @@ class ManifestLoader {
             "http://www.w3.org/2000/09/xmldsig#";
     
     private TIPPErrorHandler errorHandler;
-    private Manifest manifest = new Manifest(null);
 
     Manifest loadFromStream(InputStream manifestStream, TIPPErrorHandler errorHandler)
             throws IOException {
         return loadFromStream(manifestStream, errorHandler, null, null);
     }
 
-    // XXX This should blow away any existing settings 
     Manifest loadFromStream(InputStream manifestStream, TIPPErrorHandler errorHandler,
                            KeySelector keySelector, InputStream payloadStream) 
                 throws IOException {
@@ -86,115 +91,124 @@ class ManifestLoader {
             if (!validateSignature(document, keySelector, payloadStream)) {
                 return null;
             }
-            loadManifest(document);
+            Manifest manifest = loadManifest(document);
+            // Extra validation
+            validateManifest(manifest);
             return manifest;
         }
         catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
         }
     }    
-    
-    // TODO how does this stuff get into the Manifest
 
-    private void loadManifest(Document document) {
-        Element manifestEl = getFirstChildElement(document);
-        loadDescriptor(getFirstChildByName(manifestEl, GLOBAL_DESCRIPTOR));
-        // Either load the request or the response, depending on which is
-        // present
-        manifest.setTask(loadTaskRequestOrResponse(manifestEl));
-        
-        loadPackageObjects(getFirstChildByName(manifestEl, PACKAGE_OBJECTS));
-        
-        // Perform additional validation that isn't covered by the schema
-        TIPPTaskType taskType = manifest.getTaskType();
-        if (taskType != null) {
-            for (TIPPSection section : manifest.getSections()) {
-                if (!taskType.getSupportedSectionTypes().contains(section.getType())) {
+    private void validateManifest(Manifest manifest) {
+        TIPPTaskType taskType = manifest.getTask().getTaskType();
+        for (TIPPSection section : manifest.getSections()) {
+            checkSectionForDuplicateSequence(section);
+            // Not covered by schema: make sure we don't get an unexpected section for
+            // this task.  For custom task types, this is a no-op.
+            if (taskType != null && !(taskType instanceof CustomTaskType) &&
+                !taskType.getSupportedSectionTypes().contains(section.getType())) {
                     errorHandler.reportError(TIPPErrorType.INVALID_SECTION_FOR_TASK, 
                             "Invalid section for task type: " + section.getType(), null);
-                }
             }
         }
     }
-    
-    private void loadDescriptor(Element descriptor) {
-        manifest.setPackageId(getChildTextByName(descriptor, UNIQUE_PACKAGE_ID));
-        manifest.setCreator(loadCreator(getFirstChildByName(descriptor, PACKAGE_CREATOR)));
+
+    private void checkSectionForDuplicateSequence(TIPPSection section) {
+        Set<Integer> seen = new HashSet<Integer>();
+        for (TIPPResource r : section.getResources()) {
+            if (seen.contains(r.getSequence())) {
+                errorHandler.reportError(DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST,
+                        "Duplicate sequence number in " + section.getType().getElementName() +
+                        ": " + r.getSequence(), null);
+            }
+            seen.add(r.getSequence());
+        }
     }
-    
+
+    private Manifest loadManifest(Document document) {
+        ManifestBuilder builder = new ManifestBuilder();
+        Element manifestEl = getFirstChildElement(document);
+        loadDescriptor(builder, getFirstChildByName(manifestEl, GLOBAL_DESCRIPTOR));
+        // Either load the request or the response, depending on which is
+        // present
+        loadTaskRequestOrResponse(builder, manifestEl);
+        
+        loadPackageObjects(builder, getFirstChildByName(manifestEl, PACKAGE_OBJECTS));
+        return builder.build();
+    }
+
+    private void loadDescriptor(ManifestBuilder builder, Element descriptor) {
+        builder.setPackageId(getChildTextByName(descriptor, UNIQUE_PACKAGE_ID));
+        builder.setCreator(loadCreator(getFirstChildByName(descriptor, PACKAGE_CREATOR)));
+    }
+
     private TIPPCreator loadCreator(Element creatorEl) {
-        TIPPCreator creator = new TIPPCreator();
-        creator.setName(getChildTextByName(creatorEl, Creator.NAME));
-        creator.setId(getChildTextByName(creatorEl, Creator.ID));
-        creator.setDate(
-            loadDate(getFirstChildByName(creatorEl, Creator.UPDATE)));
-        creator.setTool(loadTool(
-                getFirstChildByName(creatorEl, TOOL)));
+        TIPPCreator creator = new TIPPCreator(
+                getChildTextByName(creatorEl, Creator.NAME),
+                getChildTextByName(creatorEl, Creator.ID),
+                loadDate(getFirstChildByName(creatorEl, Creator.UPDATE)),
+                loadTool(getFirstChildByName(creatorEl, TOOL)));
         return creator;
     }
-    
-    private TIPPTask loadTaskRequestOrResponse(Element descriptor) {
+
+    private void loadTaskRequestOrResponse(ManifestBuilder builder, Element descriptor) {
         Element requestEl = getFirstChildByName(descriptor, TASK_REQUEST);
         if (requestEl != null) {
-            return loadTaskRequest(requestEl);
+            loadTaskRequest(builder, requestEl);
         }
-        return loadTaskResponse(getFirstChildByName(descriptor, 
-                                 TASK_RESPONSE));
+        else {
+            loadTaskResponse(builder, getFirstChildByName(descriptor, TASK_RESPONSE));
+        }
     }
-    
-    private void loadTask(Element taskEl, TIPPTask task) {
-        task.setTaskType(getChildTextByName(taskEl, Task.TYPE));
-        task.setSourceLocale(getChildTextByName(taskEl, Task.SOURCE_LANGUAGE));
-        task.setTargetLocale(getChildTextByName(taskEl, Task.TARGET_LANGUAGE));
-        manifest.setTaskType(StandardTaskType.forTypeUri(task.getTaskType()));
+
+    private void loadTask(ManifestBuilder builder, Element taskEl) {
+        builder.setSourceLocale(getChildTextByName(taskEl, Task.SOURCE_LANGUAGE));
+        builder.setTargetLocale(getChildTextByName(taskEl, Task.TARGET_LANGUAGE));
+        builder.setTaskType(getChildTextByName(taskEl, Task.TYPE));
     }
-    
-    private TIPPTaskRequest loadTaskRequest(Element requestEl) {
-        TIPPTaskRequest request = new TIPPTaskRequest();
-        loadTask(requestEl, request);
-        return request;
+
+    private void loadTaskRequest(ManifestBuilder builder, Element requestEl) {
+        loadTask(builder, requestEl);
+        builder.setIsRequest(true);
     }
-    
-    private TIPPTaskResponse loadTaskResponse(Element responseEl) {
-        TIPPTaskResponse response = new TIPPTaskResponse();
-        loadTask(responseEl, response);
+
+    private void loadTaskResponse(ManifestBuilder builder, Element responseEl) {
+        loadTask(builder, responseEl);
+        builder.setIsRequest(false);
         Element inResponseTo = getFirstChildByName(responseEl, 
                                 TaskResponse.IN_RESPONSE_TO);
-        response.setRequestPackageId(getChildTextByName(inResponseTo,
-                                                 UNIQUE_PACKAGE_ID));
-        response.setRequestCreator(loadCreator(
-                getFirstChildByName(inResponseTo, PACKAGE_CREATOR)));
-        response.setComment(getChildTextByName(responseEl, 
-                            TaskResponse.COMMENT));
-        String rawMessage = getChildTextByName(responseEl, 
-                            TaskResponse.MESSAGE);
+        builder.setRequestPackageId(getChildTextByName(inResponseTo, UNIQUE_PACKAGE_ID));
+        builder.setRequestCreator(loadCreator(getFirstChildByName(inResponseTo, PACKAGE_CREATOR)));
+        builder.setComment(getChildTextByName(responseEl, TaskResponse.COMMENT));
+        String rawMessage = getChildTextByName(responseEl, TaskResponse.MESSAGE);
         TIPPResponseCode msg = TIPPResponseCode.valueOf(rawMessage);
-        response.setMessage(msg);
-        return response;
+        builder.setResponseCode(msg);
     }
-    
+
     private Date loadDate(Element dateNode) {
         return FormattingUtil.parseTIPPDate(getTextContent(dateNode));
     }
-    
+
     private TIPPTool loadTool(Element toolEl) {
-        TIPPTool tool = new TIPPTool();
-        tool.setName(getChildTextByName(toolEl, ContributorTool.NAME));
-        tool.setId(getChildTextByName(toolEl, ContributorTool.ID));
-        tool.setVersion(getChildTextByName(toolEl, ContributorTool.VERSION));
+        TIPPTool tool = new TIPPTool(
+                getChildTextByName(toolEl, ContributorTool.NAME),
+                getChildTextByName(toolEl, ContributorTool.ID),
+                getChildTextByName(toolEl, ContributorTool.VERSION));
         return tool;
     }
-    
-    private void loadPackageObjects(Element parent) {
+
+    private void loadPackageObjects(ManifestBuilder builder, Element parent) {
         NodeList children = parent.getChildNodes();
         EnumSet<TIPPSectionType> seenSections = EnumSet.noneOf(TIPPSectionType.class);
         // parse all the sections
+        Map<TIPPFile, String> locationMap = new HashMap<>();
         for (int i = 0; i < children.getLength(); i++) {
             if (children.item(i).getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
-            TIPPSection section = 
-                loadPackageObjectSection((Element)children.item(i), errorHandler);
+            TIPPSection section = loadPackageObjectSection((Element)children.item(i), errorHandler, locationMap);
             if (section == null) {
                 continue;
             }
@@ -205,91 +219,95 @@ class ManifestLoader {
                 continue;
             }
             seenSections.add(section.getType());
-            manifest.addSection(section);
+            builder.addSection(section);
+        }
+        builder.setLocationMap(locationMap);
+    }
+
+    static class Sequences {
+        private int nextSequence = 1;
+        private Set<Integer> seenSequences = new HashSet<>();
+
+        int see(int sequence) {
+            seenSequences.add(sequence);
+            return sequence;
+        }
+        int nextSequence() {
+            while (true) {
+                int i = nextSequence++;
+                if (!seenSequences.contains(i)) {
+                    return see(i);
+                }
+            }
         }
     }
 
     private TIPPSection loadPackageObjectSection(Element section,
-            TIPPErrorHandler errorHandler) {
+            TIPPErrorHandler errorHandler, Map<TIPPFile, String> locationMap) {
         TIPPSectionType type = 
                 TIPPSectionType.byElementName(section.getNodeName());
         if (type == null) {
             throw new IllegalStateException("Invalid section element"); // Should never happen
         }
-        // XXX Too much duplicated code in these two clauses, needs a refactor
+        List<TIPPResource> resources = new ArrayList<>();
+        Sequences sequences = new Sequences();
         if (type.equals(TIPPSectionType.REFERENCE)) {
-            TIPPReferenceSection refSection = new TIPPReferenceSection();
             NodeList children = section.getElementsByTagName(REFERENCE_FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
-                TIPPReferenceFile file = loadReferenceFile((Element)children.item(i),
-                                            refSection);
-                addFileToSection(refSection, file);
+                resources.add(loadReferenceFileResource((Element)children.item(i), type, locationMap, sequences));
             }
-            return refSection;
         }
         else {
-            TIPPSection objSection = new TIPPSection(type);
             NodeList children = section.getElementsByTagName(FILE_RESOURCE);
             for (int i = 0; i < children.getLength(); i++) {
-                TIPPFile file = loadFile((Element)children.item(i), objSection);
-                addFileToSection(objSection, file);
+                resources.add(loadFileResource((Element)children.item(i), type, locationMap, sequences));
             }
-            return objSection;
         }
+        return type == TIPPSectionType.REFERENCE ? new TIPPReferenceSection(resources) :
+                new TIPPSection(type, resources);
     }
 
-    private void addFileToSection(TIPPSection section, TIPPFile file) {
-        // For now, we will require sequence numbers to be present.  The spec
-        // implies this, but the schema doesn't require it!  However, that issue
-        // is caught elsewhere, so this code just needs to not crash.
-        if (file.sequenceIsSet() && section.checkSequence(file.getSequence())) {
-            errorHandler.reportError(DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST,
-                    "Duplicate sequence number in " + section.getType().getElementName() +
-                    ": " + file.getSequence(), null);
-        }
-        else {
-            section.addFile(file);
-        }
+    private int getSequence(Element el, Sequences sequences) {
+        // The schema should enforce that this is an integer > 0
+        Integer sequence = FormattingUtil.parseInt(el.getAttribute(ObjectFile.ATTR_SEQUENCE));
+        return (sequence == null) ? sequence = sequences.nextSequence() : sequences.see(sequence);
     }
 
-    private TIPPReferenceFile loadReferenceFile(Element file,
-                            TIPPSection section) {
-        TIPPReferenceFile object = new TIPPReferenceFile();
-        loadFileResource(object, file, section);
-        if (file.hasAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE)) {
-            object.setLanguageChoice( 
-                    TIPPReferenceFile.LanguageChoice.valueOf(
-                            file.getAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE)));
-        }
-        return object;
-    }
-    
-    private TIPPFile loadFile(Element file, TIPPSection section) {
-        TIPPFile object = new TIPPFile();
-        loadFileResource(object, file, section);
-        return object;
-    }
-    
-    private void loadFileResource(TIPPFile object, Element file,
-                                  TIPPSection section) {  
-        String rawSequence = file.getAttribute(ObjectFile.ATTR_SEQUENCE);
-        try {
-            // The schema will enforce that this is an integer > 0
-            object.setSequence(Integer.parseInt(rawSequence));
-        }
-        catch (NumberFormatException e) {
-            // This should be caught by validation
-        }
-        String location = getChildTextByName(file, ObjectFile.LOCATION);
-        object.setLocation(location);
-        if (!FormattingUtil.validLocationString(section, location)) {
+    private TIPPReferenceFile loadReferenceFileResource(Element el, TIPPSectionType sectionType,
+                    Map<TIPPFile, String> locationMap, Sequences sequences) {
+        int sequence = getSequence(el, sequences);
+        String location = getChildTextByName(el, ObjectFile.LOCATION);
+        if (!FormattingUtil.validLocationString(sectionType, location)) {
             errorHandler.reportError(INVALID_RESOURCE_LOCATION_IN_MANIFEST,
                             "Invalid location: " + location, null);
         }
-        String name = getChildTextByName(file, ObjectFile.NAME);
-        object.setName((name == null) ? object.getLocation() : name);
+        String name = getChildTextByName(el, ObjectFile.NAME);
+        if (name == null) name = location;
+        LanguageChoice lc = null;
+        if (el.hasAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE)) {
+            lc = TIPPReferenceFile.LanguageChoice.valueOf(
+                            el.getAttribute(ObjectFile.ATTR_LANGUAGE_CHOICE));
+        }
+        TIPPReferenceFile file = new TIPPReferenceFile(sectionType, name, sequence, lc);
+        locationMap.put(file, location);
+        return file;
     }
-    
+
+    private TIPPFile loadFileResource(Element el, TIPPSectionType sectionType, Map<TIPPFile, String> locationMap,
+                                      Sequences sequences) {  
+        int sequence = getSequence(el, sequences);
+        String location = getChildTextByName(el, ObjectFile.LOCATION);
+        if (!FormattingUtil.validLocationString(sectionType, location)) {
+            errorHandler.reportError(INVALID_RESOURCE_LOCATION_IN_MANIFEST,
+                            "Invalid location: " + location, null);
+        }
+        String name = getChildTextByName(el, ObjectFile.NAME);
+        if (name == null) name = location;
+        TIPPFile file = new TIPPFile(sectionType, name, sequence);
+        locationMap.put(file, location);
+        return file;
+    }
+
     Document parse(InputStream is) throws ParserConfigurationException, IOException {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -305,7 +323,7 @@ class ManifestLoader {
             is.close();
         }
     }
-    
+
     boolean validate(final Document dom) {
         try {
             InputStream is = 

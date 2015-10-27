@@ -1,5 +1,8 @@
 package com.spartansoftwareinc.tipp;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 /**
  * Represents one of the section types allowed by the specification.
  */
@@ -14,6 +17,8 @@ public enum TIPPSectionType {
     PREVIEW("Preview", "preview"),
     METRICS("Metrics", "metrics"),
     EXTRAS("Extras", "extras");
+
+    public static Collection<TIPPSectionType> ALL_SECTIONS = Arrays.asList(values());
 
     private String elementName;
     private String defaultName;
@@ -48,4 +53,5 @@ public enum TIPPSectionType {
         }
         return null;
     }
+
 }

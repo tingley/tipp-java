@@ -1,1 +1,7 @@
 /target
+tags
+.classpath
+*.swp
+.project
+.settings/
+issues

@@ -6,41 +6,28 @@ import java.io.IOException;
 import javax.xml.crypto.KeySelector;
 
 class PackageReader {
-    private PackageStore store;
-    PackageReader(PackageStore store) {
-        this.store = store;
+    private StreamPackageSource source;
+    PackageReader(StreamPackageSource source) {
+        this.source = source;
     }
 
     PackageBase load(TIPPErrorHandler errorHandler, KeySelector keySelector) throws IOException {
         try {
-            Manifest manifest = new ManifestLoader().loadFromStream(store.getManifestData(),
-                    errorHandler, keySelector, store.getRawPayloadData());
+            Manifest manifest = new ManifestLoader().loadFromStream(source.getManifest(), errorHandler);
             if (manifest == null) {
                 return null;
             }
             // What kind of manifest was it?
             PackageBase tipp = null;
             if (manifest.isRequest()) {
-                tipp = new RequestPackageBase(store);
+                tipp = new RequestPackageBase(source.getPayload(), manifest);
             }
             else {
-                tipp = new ResponsePackageBase(store);
+                tipp = new ResponsePackageBase(source.getPayload(), manifest);
             }
-            tipp.setManifest(manifest);
-            // HACK: Doing this to resolve an ugly chicken-and-egg
-            // situation.  The package is injected by the manifest into
-            // the package objects when they are created, but when we are
-            // creating the package from a stream, the manifest is created
-            // first and the package doesn't exist yet.  So I need to go back
-            // and re-inject the package once it has been created.
-            for (TIPPSection section : tipp.getSections()) {
-                section.setPackage(tipp);
-                for (TIPPResource file : section.getResources()) {
-                    file.setPackage(tipp);
-                }
-            }
+
             // Verify the manifest against the package contents
-            new PayloadValidator().validate(manifest, store, errorHandler);
+            new PayloadValidator().validate(manifest, source.getPayload(), errorHandler);
             return tipp;
         }
         catch (FileNotFoundException e) {

@@ -7,7 +7,6 @@ import javax.xml.crypto.KeySelector;
 
 public class TIPPFactory {
 
-    private PackageStoreFactory storeFactory = new InMemoryPackageStoreFactory();
     private TIPPErrorHandler errorHandler = new DefaultErrorHandler();
     
     public TIPPErrorHandler getErrorHandler() {
@@ -19,17 +18,6 @@ public class TIPPFactory {
             throw new IllegalArgumentException("errorHandler can't be null");
         }
         this.errorHandler = errorHandler;
-    }
-
-    public PackageStoreFactory getPackageStoreFactory() {
-        return storeFactory;
-    }
-
-    public void setPackageStoreFactory(PackageStoreFactory strategy) {
-        if (strategy == null) {
-            throw new IllegalArgumentException("null strategy");
-        }
-        this.storeFactory = strategy;
     }
 
     /**
@@ -50,8 +38,7 @@ public class TIPPFactory {
      * @throws IOException 
      */
     public TIPP openFromStream(InputStream inputStream) throws IOException {
-        return openFromStream(inputStream, storeFactory.newPackageStore(),
-                              null);
+        return openFromStream(inputStream, null);
     }
     
     /**
@@ -71,23 +58,13 @@ public class TIPPFactory {
      * @return a TIPP if parsing was completed, or null if a FATAL error occurred.
      * @throws IOException 
      */
-    public TIPP openFromStream(InputStream inputStream, 
+    public TIPP openFromStream(InputStream inputStream,
             KeySelector keySelector) throws IOException {
-        PackageStore store = storeFactory.newPackageStore();
-        return openFromStream(inputStream, store, keySelector);
-    }
-
-    private TIPP openFromStream(InputStream inputStream,
-            PackageStore store, KeySelector keySelector) throws IOException {
         try {
-            // XXX Not clear that open, close are still needed
-            // TODO: move this elsewhere
-            PackageSource source = new StreamPackageSource(inputStream);
-            source.open(errorHandler);
-            source.copyToStore(store);
-            source.close();
+            StreamPackageSource source = new StreamPackageSource(inputStream, errorHandler);
+            source.expand();
 
-            return new PackageReader(store).load(errorHandler, keySelector);
+            return new PackageReader(source).load(errorHandler, keySelector);
         }
         catch (ReportedException e) {
             // Reported exceptions will be logged as part of the load status;
@@ -95,54 +72,5 @@ public class TIPPFactory {
             // further.
             return null;
         }
-    }
-
-    /**
-     * Create a new TIPP request with the specified task type and storage.
-     * 
-     * @param type task type for the new TIPP
-     * @return TIPP
-     * @throws TIPPException
-     * @throws IOException
-     */
-    public RequestTIPP newRequestPackage(TIPPTaskType type) 
-            throws TIPPException, IOException {
-        RequestPackageBase tipPackage = new RequestPackageBase(storeFactory.newPackageStore());
-        tipPackage.setManifest(Manifest.newRequestManifest(tipPackage, type));
-        return tipPackage;
-    }
-
-    /**
-     * Create a new TIPP response with the specified task type and storage.
-     * 
-     * @param type task type for the new TIPP
-     * @return TIPP
-     * @throws TIPPException
-     * @throws IOException
-     */
-    public ResponseTIPP newResponsePackage(TIPPTaskType type)
-            throws TIPPException, IOException {
-        ResponsePackageBase tipPackage = new ResponsePackageBase(storeFactory.newPackageStore());
-        tipPackage.setManifest(Manifest.newResponseManifest(tipPackage, type));
-        return tipPackage;
-    }
-
-    /**
-     * Create a new TIPP response based on an existing request TIPP, using the specified storage.
-     * <br>
-     * The task type from the request TIPP will also become the task type for the response TIPP.
-     * Additionally, the GlobalDescriptor information from the request TIPP (package id, tool, 
-     * creator, etc) will be used to populate the InResponseTo information in the response.
-     * @param requestPackage an existing request TIPP that will be used to populate the
-     *        response metadata for the new TIPP.
-     * @return TIPP
-     * @throws TIPPException
-     * @throws IOException
-     */
-    public ResponseTIPP newResponsePackage(RequestTIPP requestPackage)
-            throws TIPPException, IOException {
-        ResponsePackageBase tipPackage = new ResponsePackageBase(storeFactory.newPackageStore());
-        tipPackage.setManifest(Manifest.newResponseManifest(tipPackage, requestPackage));
-        return tipPackage;	
     }
 }

@@ -10,7 +10,7 @@ import static com.spartansoftwareinc.tipp.TIPPErrorType.*;
  * Validates a package payload against its manifest.
  */
 class PayloadValidator {
-    
+
     /**
      * Checks the manifest against the package source and looks for 
      * discrepancies between the expected and actual objects.
@@ -20,16 +20,17 @@ class PayloadValidator {
      * @param status
      * @return true if successful, false if an error was found
      */
-    boolean validate(Manifest manifest, PackageStore store, TIPPErrorHandler errorHandler) {
+    boolean validate(Manifest manifest, Payload payload, TIPPErrorHandler errorHandler) {
         CollectingErrorHandler validationErrors = new CollectingErrorHandler();
-        Set<String> objectPaths = store.getObjectFilePaths();
+        Set<String> objectPaths = payload.getPaths();
         Set<String> pathsInManifest = new HashSet<String>();
         for (TIPPSection section : manifest.getSections()) {
             for (TIPPResource obj : section.getResources()) {
                 // TODO: some form of validation needs to be factored into 
                 // the resource class.. or into the section somehow.
                 if (obj instanceof TIPPFile) {
-                    String expectedPath = ((TIPPFile)obj).getCanonicalObjectPath();
+                    String expectedPath = Payload.getFilePath(section.getType(),
+                                            manifest.getLocationForFile((TIPPFile)obj));
                     if (pathsInManifest.contains(expectedPath)) {
                         validationErrors.reportError(DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST,
                                 "Duplicate resource in manifest: " + expectedPath, null);

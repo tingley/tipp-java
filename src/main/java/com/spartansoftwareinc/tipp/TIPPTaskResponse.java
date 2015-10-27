@@ -1,15 +1,6 @@
 package com.spartansoftwareinc.tipp;
 
-import static com.spartansoftwareinc.tipp.TIPPConstants.TASK_RESPONSE;
-import static com.spartansoftwareinc.tipp.TIPPConstants.UNIQUE_PACKAGE_ID;
-import static com.spartansoftwareinc.tipp.XMLUtil.appendElementChildWithText;
-
 import java.util.Objects;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.spartansoftwareinc.tipp.TIPPConstants.TaskResponse;
 
 class TIPPTaskResponse extends TIPPTask {
     private String requestPackageId;
@@ -20,7 +11,7 @@ class TIPPTaskResponse extends TIPPTask {
 
     TIPPTaskResponse() { super(); }
     
-    public TIPPTaskResponse(String taskType, String sourceLocale, String targetLocale,
+    public TIPPTaskResponse(TIPPTaskType taskType, String sourceLocale, String targetLocale,
                             String requestPackageId, TIPPCreator requestCreator,
                             TIPPResponseCode message, String comment) {
         super(taskType, sourceLocale, targetLocale);
@@ -72,27 +63,6 @@ class TIPPTaskResponse extends TIPPTask {
 
     public void setComment(String comment) {
         this.comment = comment;
-    }
-
-    @Override
-    Element toElement(Document doc) {
-        Element responseEl = doc.createElement(TASK_RESPONSE);
-        responseEl.appendChild(makeInResponseTo(doc));
-        appendElementChildWithText(doc, responseEl,
-                TaskResponse.MESSAGE, getMessage().toString());
-        String comment = getComment() != null ? getComment() : "";
-        appendElementChildWithText(doc, responseEl,
-                TaskResponse.COMMENT, comment);        
-        return responseEl;
-    }
-
-    private Element makeInResponseTo(Document doc) {
-        Element inReEl = doc.createElement(TaskResponse.IN_RESPONSE_TO);
-        addTaskData(doc, inReEl);
-        appendElementChildWithText(doc, inReEl,
-                UNIQUE_PACKAGE_ID, getRequestPackageId());
-        inReEl.appendChild(getRequestCreator().toElement(doc));
-        return inReEl;
     }
 
     @Override
