@@ -172,7 +172,7 @@ public class TestTIPPackage {
             }
         }
     }
-    
+
     @Test
     public void testNewPackage() throws Exception {
         RequestTIPP tipp = new RequestTIPPBuilder() 
@@ -205,6 +205,7 @@ public class TestTIPPackage {
         assertEquals(tipp.getTargetLocale(), roundTrip.getTargetLocale());
         comparePackageParts(tipp, roundTrip);        
         temp.delete();
+        roundTrip.close();
         tipp.close();
     }
 
@@ -218,18 +219,18 @@ public class TestTIPPackage {
                 .setTargetLocale("fr-FR")
                 .addFile(TIPPSectionType.BILINGUAL, "test1.xlf", new ByteArrayInputStream("test".getBytes("UTF-8")))
                 .build();
-               
+
         String requestPackageId = tipp.getPackageId();
         assertNotNull(requestPackageId);
         assertTrue(requestPackageId.startsWith("urn:uuid"));
-        
+
         File temp = File.createTempFile("tiptest", ".zip");
         OutputStream os = new FileOutputStream(temp);
-        
+
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("DSA");
         kpg.initialize(512);
         KeyPair kp = kpg.generateKeyPair();
-        
+
         tipp.saveToStream(os, kp);
         os.close();
         System.out.println("Wrote package to " + temp);

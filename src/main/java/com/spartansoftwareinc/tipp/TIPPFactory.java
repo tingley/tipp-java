@@ -60,16 +60,18 @@ public class TIPPFactory {
      */
     public TIPP openFromStream(InputStream inputStream,
             KeySelector keySelector) throws IOException {
+        StreamPackageSource source = new StreamPackageSource(inputStream, errorHandler);
         try {
-            StreamPackageSource source = new StreamPackageSource(inputStream, errorHandler);
             source.expand();
-
             return new PackageReader(source).load(errorHandler, keySelector);
         }
         catch (ReportedException e) {
             // Reported exceptions will be logged as part of the load status;
             // we catch them (to terminate loading), but don't need to propagate them
             // further.
+            // Do a full cleanup of the source, since the payload (and the TIPP)
+            // never exist
+            source.cleanupSource();
             return null;
         }
     }

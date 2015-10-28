@@ -8,9 +8,11 @@ import java.util.Map;
 import java.util.Set;
 
 class Payload {
+    private Path root;
     private Map<String, Path> files;
 
-    Payload(Map<String, Path> files) {
+    Payload(Path root, Map<String, Path> files) {
+        this.root = root;
         this.files = files;
     }
 
@@ -37,8 +39,8 @@ class Payload {
     }
 
     void close() throws IOException {
-        for (Path file : files.values()) {
-            Files.delete(file);
+        if (root != null) {
+            FileUtil.recursiveDelete(root);
         }
     }
 }

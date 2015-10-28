@@ -2,6 +2,7 @@ package com.spartansoftwareinc.tipp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -16,19 +17,23 @@ class PayloadBuilder {
     private EnumMap<TIPPSectionType, Map<String, String>> payloadLocations = new EnumMap<>(TIPPSectionType.class);
     private Map<TIPPFile, String> locationMap = new HashMap<>();
     private Map<String, Path> tempFiles = new HashMap<>();
+    private Path tempRoot;
 
     void addFile(TIPPFile file, InputStream is) throws IOException {
+        if (tempRoot == null) {
+            tempRoot = Files.createTempDirectory("tipp");
+        }
         String suffix = getSuffix(file.getName());
         String manifestLocation = Integer.toString(file.getSequence()) + suffix;
         String payloadLocation = Payload.getFilePath(file.getSectionType(), manifestLocation);
         getSectionMap(manifestLocations, file.getSectionType()).put(file.getName(), manifestLocation);
         getSectionMap(payloadLocations, file.getSectionType()).put(file.getName(), payloadLocation);
         locationMap.put(file, manifestLocation);
-        tempFiles.put(payloadLocation, FileUtil.copyToTemp(is, "file", suffix));
+        tempFiles.put(payloadLocation, FileUtil.copyToTemp(is, tempRoot, "file", suffix));
     }
 
     Payload build() {
-        return new Payload(tempFiles);
+        return new Payload(tempRoot, tempFiles);
     }
 
     Map<TIPPFile, String> getLocationMap() {

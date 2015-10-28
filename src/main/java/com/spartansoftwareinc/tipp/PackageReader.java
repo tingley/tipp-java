@@ -35,5 +35,8 @@ class PackageReader {
                                "Package contained no manifest", null);
             throw new ReportedException(e);
         }
+        finally {
+            source.close();
+        }
     }
 }

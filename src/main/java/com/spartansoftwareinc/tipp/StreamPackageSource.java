@@ -3,11 +3,8 @@ package com.spartansoftwareinc.tipp;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -31,22 +28,6 @@ class StreamPackageSource {
         this.errorHandler = errorHandler;
     }
     
-    public void close() throws IOException {
-        Files.deleteIfExists(manifest);
-        Files.walkFileTree(objects, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
     InputStream getManifest() throws IOException {
         if (manifest == null) {
             throw new FileNotFoundException("Missing manifest.xml");
@@ -55,7 +36,7 @@ class StreamPackageSource {
     }
 
     Payload getPayload() {
-        return new Payload(payloadPaths);
+        return new Payload(objects, payloadPaths);
     }
 
     void expand() throws IOException {
@@ -67,7 +48,7 @@ class StreamPackageSource {
                 }
                 String name = entry.getName();
                 if (name.equals(PackageBase.MANIFEST)) {
-                    manifest = FileUtil.copyToTemp(zis, "tipp", ".xml");
+                    manifest = FileUtil.copyToTemp(zis, "manifest", ".xml");
                 }
                 else if (name.equals(PackageBase.PAYLOAD_FILE)) {
                     expandPayload(zis);
@@ -112,5 +93,16 @@ class StreamPackageSource {
             }
         }
         Files.delete(tempPayload);
+    }
+
+    // Very hacky
+    void close() throws IOException {
+        if (manifest != null) {
+            Files.deleteIfExists(manifest);
+        }
+    }
+    void cleanupSource() throws IOException {
+        close();
+        FileUtil.recursiveDelete(objects);
     }
 }

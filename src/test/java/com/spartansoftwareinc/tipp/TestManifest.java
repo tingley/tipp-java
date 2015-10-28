@@ -116,7 +116,7 @@ public class TestManifest {
         CollectingErrorHandler status = new CollectingErrorHandler();
         Manifest manifest = loadManifestFromResource("data/duplicate_resources.xml", status);
         Map<String, Path> files = Collections.singletonMap("bilingual/Peanut_Butter.xlf", Paths.get("/"));
-        new PayloadValidator().validate(manifest, new Payload(files), status);
+        new PayloadValidator().validate(manifest, new Payload(null, files), status);
         TestTIPPackage.checkErrors(status, 1);
         assertEquals(DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST, 
                 status.getErrors().get(0).getErrorType());
@@ -210,6 +210,8 @@ public class TestManifest {
         assertEquals(StandardTaskType.TRANSLATE_STRICT_BITEXT, responsePackage.getTaskType());
         assertEquals(requestPackage.getCreator(), responsePackage.getRequestCreator());
         assertEquals(requestPackage.getPackageId(), responsePackage.getRequestPackageId());
+        responsePackage.close();
+        requestPackage.close();
     }
     
     // Disabled - signatures are currently broken for some reason
