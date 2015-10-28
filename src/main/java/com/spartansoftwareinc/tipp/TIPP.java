@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.security.KeyPair;
 import java.util.Collection;
 
-public interface TIPP {
+public interface TIPP extends AutoCloseable {
 
     /**
      * Close the package and release any resources used by it

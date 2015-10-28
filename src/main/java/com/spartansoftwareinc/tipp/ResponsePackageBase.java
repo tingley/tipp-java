@@ -13,8 +13,7 @@ class ResponsePackageBase extends PackageBase implements ResponseTIPP {
 
 	@Override
 	public String getRequestPackageId() {
-		return ((TIPPTaskResponse)getManifest().getTask())
-				.getRequestPackageId();
+		return ((TIPPTaskResponse)getManifest().getTask()).getRequestPackageId();
 	}
 
     @Override
