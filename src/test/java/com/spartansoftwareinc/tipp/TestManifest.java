@@ -79,6 +79,15 @@ public class TestManifest {
     }
 
     @Test
+    public void testUnsupportedTaskTypeResponse() throws Exception {
+        CollectingErrorHandler status = new CollectingErrorHandler();
+        Manifest manifest = loadManifestFromResource("data/unsupported_task_type.xml", status);
+        TIPPTask task = manifest.getTask();
+        assertTrue(task instanceof TIPPTaskResponse);
+        assertEquals(TIPPResponseCode.UnsupportedTaskType, ((TIPPTaskResponse)task).getMessage());
+    }
+
+    @Test
     public void testCustomTaskType() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
         Manifest manifest = loadManifestFromResource("data/custom_task.xml", status);

@@ -183,7 +183,7 @@ class ManifestLoader {
         builder.setRequestCreator(loadCreator(getFirstChildByName(inResponseTo, PACKAGE_CREATOR)));
         builder.setComment(getChildTextByName(responseEl, TaskResponse.COMMENT));
         String rawMessage = getChildTextByName(responseEl, TaskResponse.MESSAGE);
-        TIPPResponseCode msg = TIPPResponseCode.valueOf(rawMessage);
+        TIPPResponseCode msg = TIPPResponseCode.fromSchemaValue(rawMessage);
         builder.setResponseCode(msg);
     }
 
