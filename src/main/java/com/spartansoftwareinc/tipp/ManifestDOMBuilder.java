@@ -22,7 +22,6 @@ import static com.spartansoftwareinc.tipp.XMLUtil.*;
 class ManifestDOMBuilder {
 
     private Manifest manifest;
-    private Document document;
     
     ManifestDOMBuilder(Manifest manifest) {
         this.manifest = manifest;
@@ -36,7 +35,7 @@ class ManifestDOMBuilder {
         // Namespaces are required for xml-dsig
         factory.setNamespaceAware(true);
         DocumentBuilder docBuilder = factory.newDocumentBuilder();
-        document = docBuilder.newDocument();
+        Document document = docBuilder.newDocument();
         Element root = document.createElement(MANIFEST);
         // QUESTIONABLE: I'm disabling writing out the schema location, because
         // a) it is causes havoc with the xml-dsig signing, for some reason, and
@@ -45,7 +44,7 @@ class ManifestDOMBuilder {
         //      "schemaLocation", SCHEMA_LOCATION);
         root.appendChild(makeDescriptor(document));
         root.appendChild(taskToElement(manifest.getTask(), manifest.isRequest(), document));
-        root.appendChild(makePackageObjects());
+        root.appendChild(makePackageObjects(document));
         root.setAttribute("xmlns", TIPP_NAMESPACE);
         root.setAttribute(ATTR_VERSION, SCHEMA_VERSION);
         document.appendChild(root);
@@ -93,8 +92,8 @@ class ManifestDOMBuilder {
     }
 
     private Element makeDescriptor(Document doc) {
-        Element descriptor = document.createElement(GLOBAL_DESCRIPTOR);
-        appendElementChildWithText(document, 
+        Element descriptor = doc.createElement(GLOBAL_DESCRIPTOR);
+        appendElementChildWithText(doc,
                 descriptor, UNIQUE_PACKAGE_ID, manifest.getPackageId());
         descriptor.appendChild(creatorToElement(manifest.getCreator(), doc));
         return descriptor;
@@ -117,10 +116,10 @@ class ManifestDOMBuilder {
         return toolEl;
     }
 
-    private Element makePackageObjects() {
-        Element objects = document.createElement(PACKAGE_OBJECTS);
+    private Element makePackageObjects(Document doc) {
+        Element objects = doc.createElement(PACKAGE_OBJECTS);
         for (TIPPSection section : manifest.getSections()) {
-            objects.appendChild(sectionToElement(section, document));
+            objects.appendChild(sectionToElement(section, doc));
         }
         return objects;
     }

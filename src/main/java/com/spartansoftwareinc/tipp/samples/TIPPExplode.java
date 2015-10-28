@@ -12,11 +12,11 @@ import com.spartansoftwareinc.tipp.TIPP;
 import com.spartansoftwareinc.tipp.TIPPError;
 import com.spartansoftwareinc.tipp.TIPPFactory;
 
-public class TIPExplode {
+public class TIPPExplode {
 
     public static void main(String[] args) {
         try {
-            new TIPExplode().run(args);
+            new TIPPExplode().run(args);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -29,23 +29,22 @@ public class TIPExplode {
         }
         File tipFile = verifyPackageFile(args[0]);
         File targetDir = prepareTargetDirectory(args[1]);
-        InputStream is = new BufferedInputStream(new FileInputStream(tipFile));
         TIPPFactory factory = new TIPPFactory();
         CollectingErrorHandler errorHandler = new CollectingErrorHandler();
         factory.setErrorHandler(errorHandler);
-        TIPP tip = new TIPPFactory().openFromStream(is);
-        is.close();
-        List<TIPPError> errors = errorHandler.getErrors();
-        if (errors.size() > 0) {
-            System.out.println("Errors were encountered:");
-            for (TIPPError e : errors) {
-                System.out.println(e);
-                if (e.getException() != null) {
-                    e.getException().printStackTrace();
+        try (InputStream is = new BufferedInputStream(new FileInputStream(tipFile));
+             TIPP tip = new TIPPFactory().openFromStream(is)) {
+            List<TIPPError> errors = errorHandler.getErrors();
+            if (errors.size() > 0) {
+                System.out.println("Errors were encountered:");
+                for (TIPPError e : errors) {
+                    System.out.println(e);
+                    if (e.getException() != null) {
+                        e.getException().printStackTrace();
+                    }
                 }
             }
         }
-        tip.close();
         System.out.println("Wrote package contents to " + targetDir);
     }
     

@@ -48,6 +48,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
+import org.xml.sax.SAXException;
 
 import com.spartansoftwareinc.tipp.TIPPConstants.ContributorTool;
 import com.spartansoftwareinc.tipp.TIPPConstants.Creator;
@@ -209,9 +210,6 @@ class ManifestLoader {
                 continue;
             }
             TIPPSection section = loadPackageObjectSection((Element)children.item(i), errorHandler, locationMap);
-            if (section == null) {
-                continue;
-            }
             // Don't allow duplicate sections
             if (seenSections.contains(section.getType())) {
                 errorHandler.reportError(TIPPErrorType.DUPLICATE_SECTION_IN_MANIFEST, 
@@ -363,7 +361,7 @@ class ManifestLoader {
             is.close();
             return true;
         }
-        catch (Exception e) {
+        catch (SAXException | IOException e) {
             errorHandler.reportError(TIPPErrorType.INVALID_MANIFEST, "Invalid manifest", e);
             return false;
         }

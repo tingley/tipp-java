@@ -31,7 +31,7 @@ public class TIPPSection {
     static final SequenceComparator SEQUENCE_COMPARATOR = new SequenceComparator();
     static class SequenceComparator implements Comparator<TIPPResource> {
         public int compare(TIPPResource r1, TIPPResource r2) {
-            return Integer.valueOf(r1.getSequence()).compareTo(r2.getSequence());
+            return Integer.compare(r1.getSequence(), r2.getSequence());
         }
     }
 

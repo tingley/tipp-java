@@ -18,7 +18,7 @@ public enum TIPPSectionType {
     METRICS("Metrics", "metrics"),
     EXTRAS("Extras", "extras");
 
-    public static Collection<TIPPSectionType> ALL_SECTIONS = Arrays.asList(values());
+    public static final Collection<TIPPSectionType> ALL_SECTIONS = Arrays.asList(values());
 
     private String elementName;
     private String defaultName;

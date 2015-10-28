@@ -1,7 +1,10 @@
 package com.spartansoftwareinc.tipp;
 
 import java.io.InputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -83,8 +86,8 @@ class ManifestSigner {
             XMLSignature signature = factory.newXMLSignature(si, ki);
             signature.sign(dsc);
         }
-        catch (Exception e) {
-            // TODO
+        catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException | KeyException |
+               MarshalException | XMLSignatureException e) {
             throw new RuntimeException(e);
         }
     }

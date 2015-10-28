@@ -13,7 +13,12 @@ class TIPPTaskRequest extends TIPPTask {
         return super.equals(o) && 
                 (o instanceof TIPPTaskRequest);
     }
-    
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
     @Override
     public String toString() {
         return "TaskRequest(" + super.toString() + ")";
