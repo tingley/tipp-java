@@ -25,22 +25,18 @@ class PayloadValidator {
         Set<String> objectPaths = payload.getPaths();
         Set<String> pathsInManifest = new HashSet<String>();
         for (TIPPSection section : manifest.getSections()) {
-            for (TIPPResource obj : section.getResources()) {
-                // TODO: some form of validation needs to be factored into 
-                // the resource class.. or into the section somehow.
-                if (obj instanceof TIPPFile) {
-                    String expectedPath = Payload.getFilePath(section.getType(),
-                                            manifest.getLocationForFile((TIPPFile)obj));
-                    if (pathsInManifest.contains(expectedPath)) {
-                        validationErrors.reportError(DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST,
-                                "Duplicate resource in manifest: " + expectedPath, null);
-                    }
-                    if (!objectPaths.contains(expectedPath)) {
-                        validationErrors.reportError(MISSING_PAYLOAD_RESOURCE, 
-                                "Missing resource: " + expectedPath, null);
-                    }
-                    pathsInManifest.add(expectedPath);
+            for (TIPPFile obj : section.getFileResources()) {
+                String expectedPath = Payload.getFilePath(section.getType(),
+                                        manifest.getLocationForFile(obj));
+                if (pathsInManifest.contains(expectedPath)) {
+                    validationErrors.reportError(DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST,
+                            "Duplicate resource in manifest: " + expectedPath, null);
                 }
+                if (!objectPaths.contains(expectedPath)) {
+                    validationErrors.reportError(MISSING_PAYLOAD_RESOURCE, 
+                            "Missing resource: " + expectedPath, null);
+                }
+                pathsInManifest.add(expectedPath);
             }
         }
         // Now check in the other direction

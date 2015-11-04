@@ -9,7 +9,15 @@ import java.util.Collection;
  */
 public interface TIPPTaskType {
 
-    public String getType();
+    /**
+     * Get the URI of this task.
+     * @return task URI, as a String
+     */
+    public String getTaskURI();
 
+    /**
+     * Return the sections that may be present for this task.
+     * @return collection of allowed section types
+     */
     public Collection<TIPPSectionType> getSupportedSectionTypes();
 }

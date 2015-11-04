@@ -9,6 +9,10 @@ package com.spartansoftwareinc.tipp;
  */
 public class TIPPFile extends TIPPResource {
     TIPPFile(TIPPSectionType sectionType, String name, int sequence) {
-        super(sectionType, name, sequence);
+        this(sectionType, TIPPResourceType.FILE, name, sequence);
+    }
+
+    protected TIPPFile(TIPPSectionType sectionType, TIPPResourceType type, String name, int sequence) {
+        super(sectionType, type, name, sequence);
     }
 }

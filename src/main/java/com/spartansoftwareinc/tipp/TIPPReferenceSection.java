@@ -4,13 +4,13 @@ import java.util.List;
 
 public class TIPPReferenceSection extends TIPPSection {
 
-    public TIPPReferenceSection(List<TIPPResource> resources) {
+    public TIPPReferenceSection(List<TIPPFile> resources) {
         super(TIPPSectionType.REFERENCE, resources);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<TIPPReferenceFile> getResources() {
-        return (List<TIPPReferenceFile>)super.getResources();
+    public List<TIPPReferenceFile> getFileResources() {
+        return (List<TIPPReferenceFile>)super.getFileResources();
     }
 }

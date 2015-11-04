@@ -10,7 +10,7 @@ class TIPPTaskResponse extends TIPPTask {
     
 
     TIPPTaskResponse() { super(); }
-    
+
     public TIPPTaskResponse(TIPPTaskType taskType, String sourceLocale, String targetLocale,
                             String requestPackageId, TIPPCreator requestCreator,
                             TIPPResponseCode message, String comment) {
@@ -20,17 +20,15 @@ class TIPPTaskResponse extends TIPPTask {
         this.message = message;
         this.comment = comment;
     }
-    
+
     /**
      * Create a response header based on an existing request Manifest.
      * @param request
      */
-    public TIPPTaskResponse(TIPPTaskRequest request, 
-    		String requestPackageId, TIPPCreator requestCreator) {
-    	super(request.getTaskType(), request.getSourceLocale(), 
-    		  request.getTargetLocale());
-    	this.requestPackageId = requestPackageId;
-    	this.requestCreator = requestCreator;
+    public TIPPTaskResponse(TIPPTaskRequest request, String requestPackageId, TIPPCreator requestCreator) {
+        super(request.getTaskType(), request.getSourceLocale(), request.getTargetLocale());
+        this.requestPackageId = requestPackageId;
+        this.requestCreator = requestCreator;
     }
 
     public String getRequestPackageId() {
@@ -72,20 +70,18 @@ class TIPPTaskResponse extends TIPPTask {
 
     @Override
     public boolean equals(Object o) {
-        if (!super.equals(o) || 
-            !(o instanceof TIPPTaskResponse)) return false;
+        if (!super.equals(o) || !(o instanceof TIPPTaskResponse)) return false;
         TIPPTaskResponse r = (TIPPTaskResponse)o;
         return Objects.equals(message, r.message) &&
                Objects.equals(comment, r.comment) &&
                Objects.equals(requestPackageId, r.requestPackageId) &&
                Objects.equals(requestCreator, r.requestCreator);
     }
-    
+
     @Override
     public String toString() {
         return "TaskResponse(task=" + super.toString() + ", message=" + getMessage() +
                 ", commment='" + getComment() + "', requestId=" + 
                 getRequestPackageId() + ", requestCreator=" + requestCreator + ")";
     }
-
 }

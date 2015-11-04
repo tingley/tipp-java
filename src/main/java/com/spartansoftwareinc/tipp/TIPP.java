@@ -13,8 +13,8 @@ public interface TIPP extends AutoCloseable {
      * (temporary files, etc).
      * @throws IOException
      */
-	void close() throws IOException;
-	
+    void close() throws IOException;
+
     /**
      * Write this package to an output stream as a ZIP archive
      * @param outputStream
@@ -33,43 +33,90 @@ public interface TIPP extends AutoCloseable {
      */
     void saveToStream(OutputStream outputStream, KeyPair keyPair) throws TIPPException, IOException;
 
-	/**
-	 * Is this package a request?  If true, the package may be safely
-	 * cast to TIPRequestPackage; if false, teh package may be safely
-	 * cast to TIPResponsePackage.
-	 *   
-	 * @return boolean
-	 */
-	boolean isRequest();
-	
-	String getPackageId();
-	
-	TIPPCreator getCreator();
-	
-	TIPPTaskType getTaskType();
-	
-	String getSourceLocale();
-	
-	String getTargetLocale();
-	
-	TIPPSection getBilingualSection();
-	TIPPSection getInputSection();
-	TIPPSection getOutputSection();
-	TIPPSection getSpecificationsSection();
-	TIPPSection getTmSection();
-	TIPPSection getTerminologySection();
-	TIPPReferenceSection getReferenceSection();
-	TIPPSection getPreviewSection();
-	TIPPSection getMetricsSection();
-	TIPPSection getExtrasSection();
-	
-	/**
-	 * Return all the sections in this package.
-	 * @return collection of sections
-	 */
-	Collection<TIPPSection> getSections();
+    /**
+     * Is this package a request? If true, the package may be safely cast to
+     * TIPRequestPackage; if false, teh package may be safely cast to
+     * TIPResponsePackage.
+     *
+     * @return boolean
+     */
+    boolean isRequest();
 
-	TIPPSection getSection(TIPPSectionType sectionType);
+    /**
+     * Get the package id.
+     *
+     * @return package id
+     */
+    String getPackageId();
 
-	InputStream getFile(TIPPFile file) throws IOException;
+    /**
+     * Get information about this packages creator.
+     *
+     * @return creator information
+     */
+    TIPPCreator getCreator();
+
+    /**
+     * Get the task type for this package.
+     * @return task type
+     */
+    TIPPTaskType getTaskType();
+
+    /**
+     * Get the source locale for this package.
+     * @return source locale, as a BCP 47-compliant string
+     */
+    String getSourceLocale();
+
+    /**
+     * Get the target locale for this package.
+     * @return target locale, as a BCP 47-compliant string
+     */
+    String getTargetLocale();
+
+    /**
+     * Return all the sections in this package.
+     *
+     * @return collection of sections
+     */
+    Collection<TIPPSection> getSections();
+
+    /**
+     * Return the bilingual section, if present
+     * @return bilingual section, or null
+     */
+    TIPPSection getBilingualSection();
+
+    TIPPSection getInputSection();
+
+    TIPPSection getOutputSection();
+
+    TIPPSection getSpecificationsSection();
+
+    TIPPSection getTmSection();
+
+    TIPPSection getTerminologySection();
+
+    TIPPReferenceSection getReferenceSection();
+
+    TIPPSection getPreviewSection();
+
+    TIPPSection getMetricsSection();
+
+    TIPPSection getExtrasSection();
+
+    /**
+     * Return the specified section, if present
+     * @param sectionType section type
+     * @return the package section of the specified type, or null
+     */
+    TIPPSection getSection(TIPPSectionType sectionType);
+
+    /**
+     * Open the contents of a file resource in this package.
+     * @param file file resource present in this package
+     * @return inputstream containing the contents of the specified file resource
+     * @throws IOException
+     */
+    InputStream getFile(TIPPFile file) throws IOException;
 }

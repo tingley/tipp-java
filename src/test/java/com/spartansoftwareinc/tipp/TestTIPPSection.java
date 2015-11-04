@@ -22,10 +22,10 @@ public class TestTIPPSection {
     @Test
     public void testSection() {
         TIPPSection s = sectionWithFiles(TIPPSectionType.BILINGUAL, "test1", "test2");
-        List<? extends TIPPResource> l = s.getResources();
+        List<? extends TIPPFile> l = s.getFileResources();
         assertEquals(2, l.size());
-        checkFile(1, "test1", (TIPPFile)l.get(0));
-        checkFile(2, "test2", (TIPPFile)l.get(1));
+        checkFile(1, "test1", l.get(0));
+        checkFile(2, "test2", l.get(1));
     }
 
     private void checkFile(int sequence, String name, TIPPFile f) {

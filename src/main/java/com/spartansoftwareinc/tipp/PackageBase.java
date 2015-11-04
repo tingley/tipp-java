@@ -203,8 +203,8 @@ abstract class PackageBase implements TIPP {
      */
     void writeZipPayload(ZipOutputStream zos) throws IOException { 
         for (TIPPSection section : manifest.getSections()) {
-            for (TIPPResource resource : section.getResources()) {
-                String location = manifest.getLocationForFile((TIPPFile)resource);
+            for (TIPPFile resource : section.getFileResources()) {
+                String location = manifest.getLocationForFile(resource);
                 String path = Payload.getFilePath(section.getType(), location);
                 zos.putNextEntry(new ZipEntry(path));
                 try (InputStream is = payload.getFileObject(section.getType(), location)) {

@@ -9,7 +9,7 @@ class SectionBuilder {
     private static int INITIAL_SEQUENCE = 1;
     private int nextSequence = INITIAL_SEQUENCE;
     private TIPPSectionType sectionType;
-    private List<TIPPResource> resources = new ArrayList<>();
+    private List<TIPPFile> resources = new ArrayList<>();
 
     SectionBuilder(TIPPSectionType sectionType) {
         this.sectionType = sectionType;

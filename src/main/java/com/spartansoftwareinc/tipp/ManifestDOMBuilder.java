@@ -85,7 +85,7 @@ class ManifestDOMBuilder {
     }
 
     private Element addTaskData(TIPPTask task, Document doc, Element el) {
-        appendElementChildWithText(doc, el, Task.TYPE, task.getTaskType().getType());
+        appendElementChildWithText(doc, el, Task.TYPE, task.getTaskType().getTaskURI());
         appendElementChildWithText(doc, el, Task.SOURCE_LANGUAGE, task.getSourceLocale());
         appendElementChildWithText(doc, el, Task.TARGET_LANGUAGE, task.getTargetLocale());
         return el;
@@ -127,18 +127,18 @@ class ManifestDOMBuilder {
     private Element sectionToElement(TIPPSection section, Document doc) {
         Element sectionEl = doc.createElement(section.getType().getElementName());
         sectionEl.setAttribute(ATTR_SECTION_NAME, section.getType().getElementName());
-        for (TIPPResource resource : section.getResources()) {
-            if (resource instanceof TIPPReferenceFile) {
+        for (TIPPFile resource : section.getFileResources()) {
+            if (resource.getType() == TIPPResourceType.REFERENCE_FILE) {
                 sectionEl.appendChild(referenceFileToElement((TIPPReferenceFile)resource, doc));
             }
             else {
-                sectionEl.appendChild(fileToElement((TIPPFile)resource, doc));
+                sectionEl.appendChild(fileToElement(resource, doc));
             }
         }
         return sectionEl;
     }
 
-    private Element resourceAddChildren(TIPPResource resource, Document doc, Element resourceElement) {
+    private Element resourceAddChildren(TIPPFile resource, Document doc, Element resourceElement) {
         resourceElement.setAttribute(ObjectFile.ATTR_SEQUENCE, String.valueOf(resource.getSequence()));
         appendElementChildWithText(doc, resourceElement, ObjectFile.NAME, resource.getName());
         return resourceElement;

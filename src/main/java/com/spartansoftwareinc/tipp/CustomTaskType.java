@@ -20,7 +20,7 @@ public class CustomTaskType implements TIPPTaskType {
                 Collections.EMPTY_SET;
     }
     
-    public String getType() {
+    public String getTaskURI() {
         return type;
     }
 

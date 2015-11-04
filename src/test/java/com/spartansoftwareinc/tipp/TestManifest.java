@@ -24,18 +24,19 @@ import javax.xml.crypto.KeySelector;
 
 public class TestManifest {
 
-	@Test
-	public void testEmptyManifest() throws Exception {
-		Manifest manifest = new ManifestBuilder().build();
-		assertNotNull(manifest.getCreator());
-		assertNotNull(manifest.getCreator().getTool());
-		assertNotNull(manifest.getSections());
-	}
+    @Test
+    public void testEmptyManifest() throws Exception {
+        Manifest manifest = new ManifestBuilder().build();
+        assertNotNull(manifest.getCreator());
+        assertNotNull(manifest.getCreator().getTool());
+        assertNotNull(manifest.getSections());
+    }
 
-	private Manifest loadManifestFromResource(String resource, TIPPErrorHandler status) throws IOException {
-	    return new ManifestLoader()
-	            .loadFromStream(getClass().getResourceAsStream(resource), status);
-	}
+    private Manifest loadManifestFromResource(String resource,
+            TIPPErrorHandler status) throws IOException {
+        return new ManifestLoader().loadFromStream(
+                getClass().getResourceAsStream(resource), status);
+    }
 
     @Test
     public void testManifest() throws Exception {
@@ -60,7 +61,7 @@ public class TestManifest {
         assertEquals(TIPPErrorSeverity.FATAL, status.getMaxSeverity());
         assertEquals(INVALID_MANIFEST, status.getErrors().get(0).getErrorType());
     }
-    
+
     @Test
     public void testInvalidSequenceValue() throws Exception {
         Manifest manifest = null;
@@ -96,7 +97,7 @@ public class TestManifest {
         assertEquals(new CustomTaskType("http://spartansoftware.com/tasks/test", TIPPSectionType.ALL_SECTIONS),
                      manifest.getTask().getTaskType());
     }
-    
+
     @Test
     public void testDuplicateSectionInManifest() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
@@ -110,14 +111,14 @@ public class TestManifest {
         assertEquals(TIPPErrorSeverity.ERROR, status.getMaxSeverity());
         assertEquals(DUPLICATE_SECTION_IN_MANIFEST, status.getErrors().get(0).getErrorType());
     }
-    
+
     @Test
     public void testDuplicateResourcesInManifest() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
         Manifest manifest = loadManifestFromResource("data/duplicate_resources.xml", status);
         Map<String, Path> files = Collections.singletonMap("bilingual/Peanut_Butter.xlf", Paths.get("/"));
         new PayloadValidator().validate(manifest, new Payload(null, files), status);
-        TestTIPPackage.checkErrors(status, 1);
+        TestTIPPPackage.checkErrors(status, 1);
         assertEquals(DUPLICATE_RESOURCE_LOCATION_IN_MANIFEST, 
                 status.getErrors().get(0).getErrorType());
     }
@@ -126,7 +127,7 @@ public class TestManifest {
     public void testDuplicateResourceSequencesInManifest() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
         loadManifestFromResource("data/duplicate_sequences.xml", status);
-        TestTIPPackage.checkErrors(status, 1);
+        TestTIPPPackage.checkErrors(status, 1);
         assertEquals(DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST, 
                 status.getErrors().get(0).getErrorType());
     }
@@ -135,7 +136,7 @@ public class TestManifest {
     public void testInvalidLocationsInManifest() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
         loadManifestFromResource("data/invalid_location.xml", status);
-        TestTIPPackage.checkErrors(status, 7);
+        TestTIPPPackage.checkErrors(status, 7);
         for (int i = 0; i < 7; i++) {
             assertEquals(INVALID_RESOURCE_LOCATION_IN_MANIFEST,
                         status.getErrors().get(i).getErrorType());
@@ -171,7 +172,7 @@ public class TestManifest {
         assertEquals(INVALID_SECTION_FOR_TASK, status.getErrors().get(0).getErrorType());
         assertEquals(TIPPErrorSeverity.ERROR, status.getMaxSeverity());
     }
-    
+
     @Test
     public void testManifestSave() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
@@ -199,7 +200,7 @@ public class TestManifest {
     public void testResponseCreationFromRequest() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
         TIPP requestPackage = getSamplePackage("data/test_package.zip", status);
-        TestTIPPackage.checkErrors(status, 0);
+        TestTIPPPackage.checkErrors(status, 0);
         ResponseTIPPBuilder responseBuilder = new ResponseTIPPBuilder((RequestTIPP) requestPackage);
         ResponseTIPP responsePackage = responseBuilder.build();
         assertFalse(responsePackage.isRequest());
@@ -213,7 +214,7 @@ public class TestManifest {
         responsePackage.close();
         requestPackage.close();
     }
-    
+
     // Disabled - signatures are currently broken for some reason
     //@Test
     public void testManifestSignature() throws Exception {
@@ -250,7 +251,7 @@ public class TestManifest {
                 KeySelector.singletonKeySelector(kp.getPublic()), null);
         TestUtils.expectLoadStatus(roundtripStatus, 0, TIPPErrorSeverity.NONE);
     }
-    
+
     @Test
     public void testNewManifest() throws Exception {
         ManifestBuilder manifestBuilder = new ManifestBuilder();
@@ -281,7 +282,7 @@ public class TestManifest {
         Manifest manifest = new ManifestLoader()
             .loadFromStream(getClass().getResourceAsStream(
                 "data/reference-request.xml"), status);
-        TestTIPPackage.checkErrors(status, 0);
+        TestTIPPPackage.checkErrors(status, 0);
         TIPPReferenceSection refSection = manifest.getReferenceSection();
         assertNotNull(refSection);
         // TODO: more tests
@@ -291,13 +292,13 @@ public class TestManifest {
     public void testSectionOrdering() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
         Manifest manifest = loadManifestFromResource("data/out_of_order_resources.xml", status);
-        TestTIPPackage.checkErrors(status, 0);
+        TestTIPPPackage.checkErrors(status, 0);
         TIPPSection section = manifest.getSection(TIPPSectionType.BILINGUAL);
         assertNotNull(section);
-        List<TIPPFile> l = Arrays.asList(section.getResources().toArray(new TIPPFile[0]));
+        List<? extends TIPPFile> l = section.getFileResources();
         assertEquals(2, l.size());
-        assertEquals("1.xlf", manifest.getLocationForFile((TIPPFile)l.get(0)));
-        assertEquals("2.xlf", manifest.getLocationForFile((TIPPFile)l.get(1)));
+        assertEquals("1.xlf", manifest.getLocationForFile(l.get(0)));
+        assertEquals("2.xlf", manifest.getLocationForFile(l.get(1)));
     }
 
     private Manifest roundtripManifest(Manifest src, CollectingErrorHandler status) throws Exception {
@@ -399,9 +400,9 @@ public class TestManifest {
         TIPPSection section = manifest.getSection(type);
         assertNotNull(section);
         assertEquals(type, section.getType());
-        assertEquals(files, new ArrayList<TIPPResource>(section.getResources()));
+        assertEquals(files, section.getFileResources());
     }
-    
+
     private TIPP getSamplePackage(String path, CollectingErrorHandler status) throws Exception {
         InputStream is = 
             getClass().getResourceAsStream(path);

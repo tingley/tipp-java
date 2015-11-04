@@ -12,7 +12,7 @@ public class TIPPReferenceFile extends TIPPFile {
     private LanguageChoice languageChoice;
 
     TIPPReferenceFile(TIPPSectionType sectionType, String name, int sequence, LanguageChoice langChoice) {
-        super(sectionType, name, sequence);
+        super(sectionType, TIPPResourceType.REFERENCE_FILE, name, sequence);
         this.languageChoice = langChoice;
     }
 

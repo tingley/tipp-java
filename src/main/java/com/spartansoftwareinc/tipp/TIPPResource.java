@@ -3,21 +3,28 @@ package com.spartansoftwareinc.tipp;
 import java.util.Objects;
 
 /**
- * Represents a TIPP resource represented as a file.
+ * Represents a TIPP resource.  Currently, all TIPP resources are files present within
+ * the package.
  */
 public abstract class TIPPResource {
     private TIPPSectionType sectionType;
+    private TIPPResourceType type;
     private String name;
     private int sequence = 1;
     
-    TIPPResource(TIPPSectionType sectionType, String name, int sequence) {
+    TIPPResource(TIPPSectionType sectionType, TIPPResourceType type, String name, int sequence) {
         this.sectionType = sectionType;
+        this.type = type;
         this.name = name;
         this.sequence = sequence;
     }
     
-    TIPPSectionType getSectionType() {
+    public TIPPSectionType getSectionType() {
         return sectionType;
+    }
+
+    public TIPPResourceType getType() {
+        return type;
     }
 
     public String getName() {

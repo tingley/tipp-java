@@ -7,9 +7,9 @@ import java.util.Objects;
 
 public class TIPPSection {
     private TIPPSectionType type;
-    private List<TIPPResource> resources;
+    private List<TIPPFile> resources;
 
-    public TIPPSection(TIPPSectionType type, List<TIPPResource> resources) {
+    public TIPPSection(TIPPSectionType type, List<TIPPFile> resources) {
         this.type = type;
         Collections.sort(resources, SEQUENCE_COMPARATOR);
         this.resources = Collections.unmodifiableList(resources);
@@ -24,13 +24,13 @@ public class TIPPSection {
      * sequence number.  The contents of this list can't be modified.
      * @return list of contents.
      */
-    public List<? extends TIPPResource> getResources() {
+    public List<? extends TIPPFile> getFileResources() {
         return resources;
     }
 
     static final SequenceComparator SEQUENCE_COMPARATOR = new SequenceComparator();
-    static class SequenceComparator implements Comparator<TIPPResource> {
-        public int compare(TIPPResource r1, TIPPResource r2) {
+    static class SequenceComparator implements Comparator<TIPPFile> {
+        public int compare(TIPPFile r1, TIPPFile r2) {
             return Integer.compare(r1.getSequence(), r2.getSequence());
         }
     }

@@ -118,7 +118,7 @@ class ManifestLoader {
 
     private void checkSectionForDuplicateSequence(TIPPSection section) {
         Set<Integer> seen = new HashSet<Integer>();
-        for (TIPPResource r : section.getResources()) {
+        for (TIPPFile r : section.getFileResources()) {
             if (seen.contains(r.getSequence())) {
                 errorHandler.reportError(DUPLICATE_RESOURCE_SEQUENCE_IN_MANIFEST,
                         "Duplicate sequence number in " + section.getType().getElementName() +
@@ -247,7 +247,7 @@ class ManifestLoader {
         if (type == null) {
             throw new IllegalStateException("Invalid section element"); // Should never happen
         }
-        List<TIPPResource> resources = new ArrayList<>();
+        List<TIPPFile> resources = new ArrayList<>();
         Sequences sequences = new Sequences();
         if (type.equals(TIPPSectionType.REFERENCE)) {
             NodeList children = section.getElementsByTagName(REFERENCE_FILE_RESOURCE);
