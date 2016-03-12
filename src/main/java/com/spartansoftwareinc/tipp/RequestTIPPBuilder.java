@@ -3,6 +3,9 @@ package com.spartansoftwareinc.tipp;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * An object to construct a {@link RequestTIPP} instance.
+ */
 public class RequestTIPPBuilder extends AbstractTIPPBuilder {
     public RequestTIPPBuilder() {
         super(true);
@@ -44,9 +47,13 @@ public class RequestTIPPBuilder extends AbstractTIPPBuilder {
         return (RequestTIPPBuilder)super.addReferenceFile(langChoice, name, is);
     }
 
+    @Override
+    protected TIPP buildTIPP(Payload payload, Manifest manifest) {
+        return new RequestPackageBase(payload, manifest);
+    }
+
+    @Override
     public RequestTIPP build() throws IOException {
-        manifestBuilder.setLocationMap(payloadBuilder.getLocationMap());
-        RequestPackageBase requestPackage = new RequestPackageBase(payloadBuilder.build(), manifestBuilder.build());
-        return requestPackage;
+        return (RequestTIPP)super.build();
     }
 }

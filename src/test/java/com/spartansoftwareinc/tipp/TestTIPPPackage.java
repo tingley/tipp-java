@@ -170,6 +170,28 @@ public class TestTIPPPackage {
         }
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testRequestNotResponse() throws Exception {
+        try (TIPP tipp = getSamplePackage("data/test_package.zip",
+                new CollectingErrorHandler())) {
+            assertTrue(tipp.isRequest());
+            assertNotNull(tipp.asRequestTIPP());
+            // Will throw an exception
+            tipp.asResponseTIPP();
+        }
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testResponseNotRequest() throws Exception {
+        try (TIPP tipp = getSamplePackage("data/test_response_package.zip",
+                new CollectingErrorHandler())) {
+            assertFalse(tipp.isRequest());
+            assertNotNull(tipp.asResponseTIPP());
+            // Will throw an exception
+            tipp.asRequestTIPP();
+        }
+    }
+
     @Test
     public void testResponsePackage() throws Exception {
         CollectingErrorHandler status = new CollectingErrorHandler();
@@ -177,7 +199,7 @@ public class TestTIPPPackage {
                 status)) {
             checkErrors(status, 0);
             assertFalse(tip.isRequest());
-            verifyResponsePackage((ResponseTIPP) tip);
+            verifyResponsePackage(tip.asResponseTIPP());
             Path temp = Files.createTempFile("tiptest", ".zip");
             try (OutputStream os = Files.newOutputStream(temp)) {
                 tip.saveToStream(os);

@@ -30,4 +30,13 @@ class ResponsePackageBase extends PackageBase implements ResponseTIPP {
         return ((TIPPTaskResponse) getManifest().getTask()).getComment();
     }
 
+    @Override
+    public RequestTIPP asRequestTIPP() {
+        throw new IllegalStateException("TIPP is not a request");
+    }
+
+    @Override
+    public ResponseTIPP asResponseTIPP() {
+        return (ResponseTIPP)this;
+    }
 }

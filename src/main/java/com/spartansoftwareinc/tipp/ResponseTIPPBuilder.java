@@ -3,6 +3,10 @@ package com.spartansoftwareinc.tipp;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * An object to construct a {@link ResponseTIPP} instance.  Response
+ * TIPPs may be constructed ad-hoc, or based on an existing request.
+ */
 public class ResponseTIPPBuilder extends AbstractTIPPBuilder {
 
     public ResponseTIPPBuilder() {
@@ -10,35 +14,43 @@ public class ResponseTIPPBuilder extends AbstractTIPPBuilder {
     }
 
     /**
-     * Start building a response to the specified request TIPP.
-     * @param tipp
+     * Start building a response to the specified request TIPP.  This is
+     * equivalent to passing the appropriate values to these methods:
+     * <ul>
+     * <li> {@link #setRequestCreator}
+     * <li> {@link #setRequestPackageId}
+     * <li> {@link #setTaskType}
+     * <li> {@link #setSourceLocale}
+     * <li> {@link #setTargetLocale}
+     * </ul>
+     * @param tipp request TIPP
      */
     public ResponseTIPPBuilder(RequestTIPP tipp) {
         super(false);
         setRequestPackageId(tipp.getPackageId());
         setRequestCreator(tipp.getCreator());
-        manifestBuilder.setTaskType(tipp.getTaskType());
-        manifestBuilder.setSourceLocale(tipp.getSourceLocale());
-        manifestBuilder.setTargetLocale(tipp.getTargetLocale());
+        getManifestBuilder().setTaskType(tipp.getTaskType());
+        getManifestBuilder().setSourceLocale(tipp.getSourceLocale());
+        getManifestBuilder().setTargetLocale(tipp.getTargetLocale());
     }
 
     public ResponseTIPPBuilder setRequestPackageId(String packageId) {
-        manifestBuilder.setRequestPackageId(packageId);
+        getManifestBuilder().setRequestPackageId(packageId);
         return this;
     }
 
     public ResponseTIPPBuilder setComment(String comment) {
-        manifestBuilder.setComment(comment);
+        getManifestBuilder().setComment(comment);
         return this;
     }
 
     public ResponseTIPPBuilder setResponseCode(TIPPResponseCode code) {
-        manifestBuilder.setResponseCode(code);
+        getManifestBuilder().setResponseCode(code);
         return this;
     }
 
     public ResponseTIPPBuilder setRequestCreator(TIPPCreator requestCreator) {
-        manifestBuilder.setRequestCreator(requestCreator);
+        getManifestBuilder().setRequestCreator(requestCreator);
         return this;
     }
 
@@ -78,9 +90,13 @@ public class ResponseTIPPBuilder extends AbstractTIPPBuilder {
         return (ResponseTIPPBuilder)super.addReferenceFile(langChoice, name, is);
     }
 
+    @Override
+    protected TIPP buildTIPP(Payload payload, Manifest manifest) {
+        return new ResponsePackageBase(payload, manifest);
+    }
+
+    @Override
     public ResponseTIPP build() throws IOException {
-        manifestBuilder.setLocationMap(payloadBuilder.getLocationMap());
-        ResponsePackageBase responsePackage = new ResponsePackageBase(payloadBuilder.build(), manifestBuilder.build());
-        return responsePackage;
+        return (ResponseTIPP)super.build();
     }
 }

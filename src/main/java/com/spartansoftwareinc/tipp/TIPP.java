@@ -43,6 +43,22 @@ public interface TIPP extends AutoCloseable {
     boolean isRequest();
 
     /**
+     * If this is a request TIPP, return a {@link RequestTIPP} instance; otherwise
+     * throw an exception.
+     * @return request instance
+     * @throws IllegalStateException if this is not a request TIPP
+     */
+    RequestTIPP asRequestTIPP();
+
+    /**
+     * If this is a request TIPP, return a {@link ResponseTIPP} instance; otherwise
+     * throw an exception.
+     * @return response instance
+     * @throws IllegalStateException if this is not a response TIPP
+     */
+    ResponseTIPP asResponseTIPP();
+
+    /**
      * Get the package id.
      *
      * @return package id

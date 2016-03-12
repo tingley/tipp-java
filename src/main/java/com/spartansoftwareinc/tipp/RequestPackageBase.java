@@ -9,4 +9,14 @@ class RequestPackageBase extends PackageBase implements RequestTIPP {
     public boolean isRequest() {
         return true;
     }
+
+    @Override
+    public RequestTIPP asRequestTIPP() {
+        return (RequestTIPP)this;
+    }
+
+    @Override
+    public ResponseTIPP asResponseTIPP() {
+        throw new IllegalStateException("TIPP is not a response");
+    }
 }
